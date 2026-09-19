@@ -1,0 +1,87 @@
+{
+  "common_settings": {
+    "frames_to_drop": 0
+  },
+  "threshold_settings": {
+    "brow_left_common": {
+      "high": 0.35966,
+      "low": 0.265012
+    },
+    "brow_right_common": {
+      "high": 0.369768,
+      "low": 0.27246
+    },
+    "eyelid_left_blink": {
+      "high": 0.533828,
+      "low": 0.449539
+    },
+    "eyelid_left_squint": {
+      "high": 0.674471,
+      "low": 0.638973
+    },
+    "eyelid_left_wide": {
+      "high": 0.063192,
+      "low": 0.046563
+    },
+    "eyelid_right_blink": {
+      "high": 0.451337,
+      "low": 0.380073
+    },
+    "eyelid_right_squint": {
+      "high": 0.556886,
+      "low": 0.527576
+    },
+    "eyelid_right_wide": {
+      "high": 0.085489,
+      "low": 0.062992
+    },
+    "gaze_left_look_up": {
+      "high": 0.485524,
+      "low": 0.408863
+    },
+    "gaze_left_look_down": {
+      "high": 0.602366,
+      "low": 0.507256
+    },
+    "gaze_left_look_in": {
+      "high": 0.845321,
+      "low": 0.711849
+    },
+    "gaze_left_look_out": {
+      "high": 0.893365,
+      "low": 0.752307
+    },
+    "gaze_right_look_up": {
+      "high": 0.504334,
+      "low": 0.424703
+    },
+    "gaze_right_look_down": {
+      "high": 0.590618,
+      "low": 0.497363
+    },
+    "gaze_right_look_in": {
+      "high": 0.892417,
+      "low": 0.751509
+    },
+    "gaze_right_look_out": {
+      "high": 0.837113,
+      "low": 0.704937
+    },
+    "mouth_smile_left": {
+      "high": 0.147687,
+      "low": 0.139914
+    },
+    "mouth_smile_right": {
+      "high": 0.087422,
+      "low": 0.082821
+    },
+    "mouth_open": {
+      "high": 0.048788,
+      "low": 0.04622
+    },
+    "mouth_pucker": {
+      "high": 0.707264,
+      "low": 0.670039
+    }
+  }
+}
