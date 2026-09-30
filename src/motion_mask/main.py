@@ -9,6 +9,27 @@ from virtual_camera import NoneVirtualCamera, DefaultVirtualCamera
 logger = loggers.LoggerFactory.get_logger(name=__name__)
 
 
+def check():
+    # Dependencies check
+    try:
+        import pyvirtualcam
+        import mediapipe as mp
+
+        print('[OK] pyvirtualcam version:', pyvirtualcam.__version__)
+        print('[OK] mediapipe version:', mp.__version__)
+    except Exception as e:
+        print('[FAILED] some dependencies import failed')
+        print(f'Exception: {e}')
+
+    # Virtual camera check
+    try:
+        with pyvirtualcam.Camera(width=1280, height=720, fps=10) as cam:
+            print('[OK] virtual cam is avaliable')
+    except Exception as e:
+        print('[FAILED] failed to use virtual camera')
+        print(f'Exception: {e}')
+
+
 class AppMode(enum.StrEnum):
     SETUP = 'setup'
     PREVIEW = 'preview'
@@ -73,25 +94,33 @@ class App:
                       model_path: str,
                       device: str,
                       avatar_dir_path: str,
+                      settings_path: str
                       ):
 
         if mode == AppMode.SETUP:
             from calibration_engine import CalibrationEngine
-            engine = CalibrationEngine(model_path=model_path)
+            engine = CalibrationEngine(
+                model_path=model_path,
+                settings_path=settings_path,
+            )
         elif mode == AppMode.PREVIEW:
             from avatar_engine import AvatarEngine
             engine = AvatarEngine(model_path=model_path,
                                   avatar_path=avatar_dir_path,
                                   preview_mode=True,
-                                  virtual_camera=NoneVirtualCamera())
+                                  virtual_camera=NoneVirtualCamera(),
+                                  settings_path=settings_path,
+                                  )
         elif mode == AppMode.LIVE:
-            virtual_camera = DefaultVirtualCamera(device=device)
-
             from avatar_engine import AvatarEngine
+
+            virtual_camera = DefaultVirtualCamera(device=device)
             engine = AvatarEngine(model_path=model_path,
                                   avatar_path=avatar_dir_path,
                                   preview_mode=False,
-                                  virtual_camera=virtual_camera)
+                                  virtual_camera=virtual_camera,
+                                  settings_path=settings_path,
+                                  )
 
         return engine
 
@@ -108,6 +137,8 @@ class App:
             self.memory_monitor.start()
 
     def main(self):
+        model_path = './landmarkers/face_landmarker.task'
+        settings_path = './settings/settings.json'
 
         args = self.parse_args()
 
@@ -115,9 +146,8 @@ class App:
         device = DeviceType(args.device)
         avatar_dir_path = args.avatar
 
-        model_path = './landmarkers/face_landmarker.task'
-
-        logger.debug(f'args: {model_path}')
+        logger.debug(f'settings_path: {settings_path}')
+        logger.debug(f'model_path: {model_path}')
         logger.debug(f'mode: {mode}')
         logger.debug(f'device: {device}')
         logger.debug(f'avatar: {avatar_dir_path}')
@@ -128,7 +158,9 @@ class App:
             engine = self.create_engine(mode=mode,
                                         device=device,
                                         avatar_dir_path=avatar_dir_path,
-                                        model_path=model_path)
+                                        model_path=model_path,
+                                        settings_path=settings_path,
+                                        )
 
             engine.launch()
             exit(0)
@@ -136,7 +168,9 @@ class App:
             logger.error(f'Avatar error: {e}')
             exit(1)
 
-
-if __name__ == '__main__':
+def run():
     app = App()
     app.main()
+
+if __name__ == '__main__':
+    run()

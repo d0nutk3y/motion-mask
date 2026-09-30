@@ -91,8 +91,7 @@
 - Python 3.12
 - [mediapipe](https://github.com/google-ai-edge/mediapipe)
 - [pyvirtualcam](https://github.com/letmaik/pyvirtualcam)
-
-Полный список зависимостей находится в файле `requirements.txt`.
+- psutil
 
 ## Установка
 
@@ -390,3 +389,49 @@ https://yakitorichan.booth.pm/items/3170523
 - [ ] Добавить настройку разрешения аватара
 - [ ] Добавить настройку изменения разрешения (resize)
 - [ ] Добавить настройку глубины LRU cache аватара
+
+
+# random
+
+
+## Development Setup
+
+```
+#git clone https://github.com/your-org/my-desktop-app.git
+#cd my-desktop-app
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+pip install -e ".[dev]"
+#
+#
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+uv sync
+uv self update
+
+```
+
+```
+# Установка uv в систему
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Обновление uv
+uv self update
+```
+
+В директори с проектом
+
+```
+uv sync
+
+uv sync --extra dev
+
+uv sync --extra build
+```
+
+
+
+uv устанавливается в ~/.local/bin (Linux/macOS) или %USERPROFILE%\.local\bin (Windows) как независимый бинарный файл.

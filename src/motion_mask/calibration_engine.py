@@ -18,8 +18,8 @@ class CalibrationEngine(SettingsManager):
     default_points_color = (127, 127, 127)
     default_fill_value = 16
 
-    def __init__(self, model_path: str):
-        super().__init__()
+    def __init__(self, setting_path: str, model_path: str):
+        super().__init__(settings_path=setting_path)
 
         self.results_count_default = 30
         self.model_path = model_path

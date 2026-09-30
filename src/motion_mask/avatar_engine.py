@@ -22,11 +22,14 @@ class AvatarEngine(SettingsManager):
     default_points_color = (0, 127, 0)
     default_fill_value = 16
 
-    def __init__(self, model_path: str,
+    def __init__(self,
+                 setting_path: str,
+                 model_path: str,
                  avatar_path: str,
                  preview_mode: bool = True,
-                 virtual_camera = None):
-        super().__init__()
+                 virtual_camera=None):
+
+        super().__init__(settings_path=setting_path)
 
         self.fps = 30
 
