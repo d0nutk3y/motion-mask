@@ -7,7 +7,7 @@ import numpy as np
 from mediapipe.tasks.python.components.containers import Category
 from mediapipe.tasks.python.vision import FaceLandmarkerResult
 
-from common import (
+from motion_mask.common import (
     BrowState,
     EyelidState,
     GazeState,
@@ -15,15 +15,15 @@ from common import (
     MouthThresholdsNames, FaceParts,
     BrowIndexMapping, EyelidIndexMapping, GazeIndexMapping, MouthIndexMapping)
 
-import frame_utils as fu
-from settings import ThresholdSettings
+import motion_mask.frame_utils as fu
+from motion_mask.settings import ThresholdSettings
 
-from shapes import (
+from motion_mask.shapes import (
     Shape,
     ShapeDefault,
 )
 
-import loggers
+from motion_mask import loggers
 
 logger = loggers.LoggerFactory.get_logger(name=__name__)
 

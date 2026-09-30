@@ -1,5 +1,6 @@
 import textwrap
 import time
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -7,10 +8,10 @@ from mediapipe import Image, ImageFormat
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 
-import frame_utils as fu
-from calibration import logger, Calibrator
-from capture import CaptureWrap
-from settings_manager import SettingsManager
+from motion_mask import frame_utils as fu
+from motion_mask.calibration import logger, Calibrator
+from motion_mask.capture import CaptureWrap
+from motion_mask.settings_manager import SettingsManager
 
 
 class CalibrationEngine(SettingsManager):
@@ -18,11 +19,11 @@ class CalibrationEngine(SettingsManager):
     default_points_color = (127, 127, 127)
     default_fill_value = 16
 
-    def __init__(self, setting_path: str, model_path: str):
-        super().__init__(settings_path=setting_path)
+    def __init__(self, settings_path: Path, model_path: Path):
+        super().__init__(settings_path=settings_path)
 
         self.results_count_default = 30
-        self.model_path = model_path
+        model_path_as_str = str(model_path.absolute())
 
         self.win_name = 'Capture'
         self.cap_width = 640
@@ -30,12 +31,13 @@ class CalibrationEngine(SettingsManager):
 
         self.frame_width = 640
         self.frame_height = 360
+
         self.info_frame_back = np.full(
             (self.frame_height, self.frame_width, 4),
             self.default_fill_value,
             dtype=np.uint8)
 
-        base_options = python.BaseOptions(model_asset_path=model_path)
+        base_options = python.BaseOptions(model_asset_path=model_path_as_str)
 
         options = vision.FaceLandmarkerOptions(
             base_options=base_options,

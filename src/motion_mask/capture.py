@@ -1,10 +1,9 @@
 import threading
-import time
 
 import cv2
 import numpy as np
 
-import loggers
+from motion_mask import loggers
 
 logger = loggers.LoggerFactory.get_logger(name=__name__)
 
@@ -12,7 +11,7 @@ logger = loggers.LoggerFactory.get_logger(name=__name__)
 class CaptureWrap(threading.Thread):
     def __init__(self, number=0, width=640, height=360):
         super().__init__()
-        self.stop_trigger = False
+        self._stop_event = threading.Event()
 
         self.capture = cv2.VideoCapture(number)
 
@@ -36,21 +35,20 @@ class CaptureWrap(threading.Thread):
             logger.error(f'Problems with camera: {e}')
             return
 
-
     def _run(self):
-        while True:
-            if self.stop_trigger:
-                break
+        while not self._stop_event.is_set():
 
             ret, frame = self.capture.read()
             if ret:
                 self.frame = frame
 
-            time.sleep(1 / 30)
+            timeout = 1 / 30
+            self._stop_event.wait(timeout=timeout)
+
+        self.capture.release()
 
     def get_frame(self):
         return self.frame if self.frame is not None else self.blank_frame
 
     def stop(self):
-        self.stop_trigger = True
-        self.capture.release()
+        self._stop_event.set()

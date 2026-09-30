@@ -1,6 +1,6 @@
 from mediapipe.tasks.python.components.containers import Category
 
-from common import index_to_name_mapping
+from motion_mask.common import index_to_name_mapping
 
 
 class Shape:

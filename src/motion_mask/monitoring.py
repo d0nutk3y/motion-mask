@@ -3,7 +3,7 @@ import threading
 import time
 import psutil
 
-import loggers
+from motion_mask import loggers
 
 logger = loggers.LoggerFactory.get_logger(name=__name__)
 

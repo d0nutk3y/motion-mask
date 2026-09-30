@@ -1,6 +1,6 @@
 from pathlib import Path
 
-import loggers
+from motion_mask import loggers
 
 logger = loggers.LoggerFactory.get_logger(name=__name__)
 
@@ -20,8 +20,8 @@ class Storage:
 class FileStorage(Storage):
     encoding = 'utf-8'
 
-    def __init__(self, filepath: str):
-        self.filepath = Path(filepath)
+    def __init__(self, filepath: Path):
+        self.filepath = filepath
 
     def save(self, text: str):
         try:
