@@ -471,7 +471,7 @@ class FaceStates:
             Layers.brow_right: RightBrow(),
         }
 
-    def apply_thresholds(self, settings: [str, dict[str, ThresholdSettings]]):
+    def apply_thresholds(self, settings):
         for face_part in self.parts_mapping.values():
             for name, threshold in face_part.thresholds.items():
                 threshold.update(threshold_settings=settings[name])
@@ -537,7 +537,7 @@ class DefaultStatesTransformer(StatesTransformer):
 
 
 class AvatarCache:
-    def __init__(self, max_size: int = 64):
+    def __init__(self, max_size: int = 128):
         if max_size <= 8:
             raise ValueError(f'Minimal size of cache must be more than 8')
 
