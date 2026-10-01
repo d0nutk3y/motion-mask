@@ -105,8 +105,12 @@ class AvatarEngine(SettingsManager):
 
         frame_drop_counter = 0
         while True:
+            if self.capture_wrap.has_errors():
+                logger.error('Camera error')
+                break
+
             if self.virtual_camera.has_errors():
-                logger.error('Virtual camera has some errors')
+                logger.error('Virtual camera error')
                 break
 
             if self.testing_mode:
@@ -190,10 +194,15 @@ class AvatarEngine(SettingsManager):
     def graceful_shutdown(self):
         logger.info(f'Graceful shutdown')
 
-        self.capture_wrap.stop()
-        self.virtual_camera.stop()
+        threads = [
+            self.capture_wrap,
+            self.virtual_camera,
+        ]
 
-        for t in [self.capture_wrap, self.virtual_camera]:
+        for t in threads:
+            t.stop()
+
+        for t in threads:
             t.join()
 
         if self.testing_mode:

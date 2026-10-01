@@ -57,6 +57,16 @@ class CalibrationEngine(SettingsManager):
         self.update_thresholds_mapping(mapping=mapping)
         self.save_settings()
 
+    def launch(self):
+        try:
+            self._launch()
+        except Exception as e:
+            logger.error('Something goes wrong')
+            message = f'{type(e)} : {e}'
+            logger.error(message)
+            self.graceful_shutdown()
+            exit(1)
+
     def _launch(self):
         logger.info("Calibration mode")
 
@@ -68,6 +78,10 @@ class CalibrationEngine(SettingsManager):
         calibrator = Calibrator(settings_setter=lambda x: self.set_thresholds_mapping(x))
 
         while True:
+            if self.capture_wrap.has_errors():
+                logger.error('Camera error')
+                break
+
             key = cv2.waitKey(1) & 0xFF
             if key == ord('q'):
                 break
@@ -134,24 +148,18 @@ class CalibrationEngine(SettingsManager):
 
             cv2.imshow(winname=self.win_name, mat=combined_frame)
 
-        self.quit_routine()
+        self.graceful_shutdown()
 
-    def quit_routine(self):
+    def graceful_shutdown(self):
+        logger.info(f'Graceful shutdown')
+
         self.capture_wrap.stop()
-        self.face_landmarker.close()
+        self.capture_wrap.join()
+
         cv2.destroyAllWindows()
 
-        time.sleep(1.5)
+        self.face_landmarker.close()
 
-    def launch(self):
-        try:
-            self._launch()
-        except Exception as e:
-            logger.error('Something goes wrong')
-            message = f'{type(e)} : {e}'
-            logger.error(message)
-            self.quit_routine()
-            exit(1)
 
     def add_points_to_frame(self, detection_result, frame):
         for face_landmarks in detection_result.face_landmarks:
