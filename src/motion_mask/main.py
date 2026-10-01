@@ -1,5 +1,6 @@
 import argparse
 import enum
+import sys
 
 from importlib.resources import files, as_file
 from pathlib import Path
@@ -47,10 +48,16 @@ class DeviceType(enum.StrEnum):
     unitycapture = 'unitycapture'
 
 
-def create_path(package_name: str, path_as_str: str) -> Path:
-    resource = files(package_name).joinpath(path_as_str)
-    with as_file(resource) as path:
-        return path
+def create_path(path_as_str: str) -> Path:
+    if getattr(sys, 'frozen', False):
+        # Nuitka устанавливает sys.frozen = True в собранном виде
+        base = Path(sys.executable).parent
+    else:
+        # Режим разработки: ресурсы внутри пакета
+        base = Path(__file__).parent
+
+    path = base.joinpath(path_as_str)
+    return path
 
 
 class App:
@@ -123,8 +130,6 @@ class App:
         elif mode == AppMode.LIVE:
             from motion_mask.avatar_engine import AvatarEngine
 
-
-
             virtual_camera = DefaultVirtualCamera(device=device)
             engine = AvatarEngine(model_path=model_path,
                                   avatar_path=avatar_dir_path,
@@ -148,15 +153,12 @@ class App:
             self.memory_monitor.start()
 
     def main(self):
-        package_name = 'motion_mask'
 
         settings_path = create_path(
-            package_name=package_name,
             path_as_str='settings/settings.json',
         )
 
         model_path = create_path(
-            package_name=package_name,
             path_as_str='landmarkers/face_landmarker.task',
         )
 
@@ -166,7 +168,6 @@ class App:
         device = args.device
 
         avatar_dir_path = create_path(
-            package_name=package_name,
             path_as_str=args.avatar,
         )
 
@@ -187,10 +188,10 @@ class App:
                                         )
 
             engine.launch()
-            exit(0)
+            sys.exit(0)
         except AvatarException as e:
             logger.error(f'Avatar error: {e}')
-            exit(1)
+            sys.exit(1)
 
 
 def run():

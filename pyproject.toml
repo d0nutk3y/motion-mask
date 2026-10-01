@@ -1,7 +1,7 @@
 [project]
 name = "motion-mask"
 version = "0.1.0"
-description = "Add your description here"
+description = ""
 authors = [
     { name = "d0nutk3y", email = "no@email" }
 ]

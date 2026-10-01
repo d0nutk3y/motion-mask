@@ -1,0 +1,4 @@
+- module-name: 'mediapipe'
+  data-files:
+    - dirs:
+        - 'tasks/c'

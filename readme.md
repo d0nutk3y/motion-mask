@@ -435,3 +435,8 @@ uv sync --extra build
 
 uv устанавливается в ~/.local/bin (Linux/macOS) или %USERPROFILE%\.local\bin (Windows) как
 независимый бинарный файл.
+
+
+Для билдов через Nuitka:
+
+sudo apt install patchelf

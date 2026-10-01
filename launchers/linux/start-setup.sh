@@ -1,2 +1,2 @@
 #!/bin/bash
-motion-mask -m setup
+./motion-mask -m setup

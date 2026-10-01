@@ -60,12 +60,14 @@ class CalibrationEngine(SettingsManager):
     def launch(self):
         try:
             self._launch()
+        except KeyboardInterrupt:
+            logger.info('Shutting down')
         except Exception as e:
-            logger.error('Something goes wrong')
-            message = f'{type(e)} : {e}'
-            logger.error(message)
+            logger.error(f'Something goes wrong: {e}')
+        finally:
             self.graceful_shutdown()
-            exit(1)
+
+
 
     def _launch(self):
         logger.info("Calibration mode")
@@ -148,7 +150,6 @@ class CalibrationEngine(SettingsManager):
 
             cv2.imshow(winname=self.win_name, mat=combined_frame)
 
-        self.graceful_shutdown()
 
     def graceful_shutdown(self):
         logger.info(f'Graceful shutdown')
