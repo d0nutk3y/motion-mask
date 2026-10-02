@@ -1,4 +1,6 @@
 - module-name: 'mediapipe'
-  data-files:
-    - dirs:
-        - 'tasks/c'
+  dlls:
+    - from_filenames:
+        relative_path: 'tasks/c'
+        prefixes:
+          - 'libmediapipe'
