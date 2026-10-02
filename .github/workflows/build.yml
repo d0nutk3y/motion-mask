@@ -1,0 +1,35 @@
+name: Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: |
+            pyproject.toml
+            uv.lock
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install dependencies (including build extra)
+        run: uv sync --extra build
+
+      - name: Build with Nuitka
+        run: bash packaging/nuitka/build_linux.sh
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: motion-mask-linux
+          path: dist/linux/motion-mask-linux.tar.gz
+          include-hidden-files: true
