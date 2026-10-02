@@ -14,6 +14,25 @@ from motion_mask.virtual_camera import NoneVirtualCamera, DefaultVirtualCamera
 logger = loggers.LoggerFactory.get_logger(name=__name__)
 
 
+class CustomHelpFormatter(argparse.HelpFormatter):
+    def _format_action_invocation(self, action):
+        if not action.option_strings:
+            return super()._format_action_invocation(action)
+
+        if action.nargs == 0:
+            return ", ".join(action.option_strings)
+
+        metavar, = self._metavar_formatter(action, action.dest)(1)
+
+        parts = []
+        for option in action.option_strings:
+            if option.startswith("--"):
+                parts.append(f"{option} {metavar}")
+            else:
+                parts.append(option)
+
+        return ", ".join(parts)
+
 def check():
     # Dependencies check
     try:
@@ -69,9 +88,10 @@ class App:
 
     @staticmethod
     def parse_args() -> argparse.Namespace:
+
         parser = argparse.ArgumentParser(
-            description='Motion mask',
-            formatter_class=argparse.RawDescriptionHelpFormatter)
+            description='motion-mask',
+            formatter_class=CustomHelpFormatter)
 
         modes_as_str = [str(mode) for mode in AppMode]
 
@@ -79,8 +99,8 @@ class App:
             '-m', '--mode',
             type=str,
             required=True,
-            choices=modes_as_str,
-            help=f'application mode: {", ".join(modes_as_str)}'
+            metavar='MODE',
+            help=f'application mode: {', '.join(modes_as_str)}'
         )
 
         devices_as_str = [str(device) for device in DeviceType]
@@ -88,7 +108,8 @@ class App:
             '-d', '--device',
             type=str,
             required=False,
-            help=f'virtual camera device: {", ".join(devices_as_str)}',
+            metavar='DEVICE',
+            help=f'virtual camera device: {', '.join(devices_as_str)}, /dev/video9',
             default=DeviceType.v4l2loopback,
         )
 
@@ -96,7 +117,7 @@ class App:
             '-a', '--avatar',
             type=str,
             required=False,
-            metavar='path_to_avatar',
+            metavar='PATH_TO_AVATAR',
             help=f'path to avatar directory',
             default='./avatars/kanisan',
         )
