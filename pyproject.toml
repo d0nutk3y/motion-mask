@@ -1,0 +1,30 @@
+[project]
+name = "motion-mask"
+version = "0.1.0"
+description = ""
+authors = [
+    { name = "d0nutk3y", email = "no@email" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "mediapipe",
+    "pyvirtualcam",
+    "psutil",
+]
+
+[project.optional-dependencies]
+dev = [
+]
+build = [
+    "nuitka>=4.0",
+]
+
+[project.scripts]
+motion-mask = "motion_mask.main:run"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[build-system]
+requires = ["uv_build>=0.12.21,<0.13.0"]
+build-backend = "uv_build"

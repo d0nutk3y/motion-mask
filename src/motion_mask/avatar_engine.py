@@ -7,12 +7,13 @@ from mediapipe import Image, ImageFormat
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 
-import frame_utils as fu
-import loggers
-from avatar import FaceStates, Avatar, DefaultStatesTransformer
-from capture import CaptureWrap
-from settings import CommonSettings
-from settings_manager import SettingsManager
+from motion_mask import frame_utils as fu
+from motion_mask import loggers
+
+from motion_mask.avatar import FaceStates, Avatar, DefaultStatesTransformer
+from motion_mask.capture import CaptureWrap
+from motion_mask.settings import CommonSettings
+from motion_mask.settings_manager import SettingsManager
 
 logger = loggers.LoggerFactory.get_logger(name=__name__)
 
@@ -22,24 +23,27 @@ class AvatarEngine(SettingsManager):
     default_points_color = (0, 127, 0)
     default_fill_value = 16
 
-    def __init__(self, model_path: str,
-                 avatar_path: str,
+    def __init__(self,
+                 settings_path: Path,
+                 model_path: Path,
+                 avatar_path: Path,
                  preview_mode: bool = True,
-                 virtual_camera = None):
-        super().__init__()
+                 virtual_camera=None):
+
+        super().__init__(settings_path=settings_path)
 
         self.fps = 30
 
         self.face_states = FaceStates()
         self.sates_transformer = DefaultStatesTransformer()
-        self.avatar = Avatar(path_to=Path(avatar_path))
+        self.avatar = Avatar(path_to=avatar_path)
 
         self.absent_frame = self.avatar.get_absent_frame()
 
         self.testing_mode = preview_mode
 
         self.frames_to_drop = 0
-        self.model_path = model_path
+        model_path_as_str = str(model_path.absolute())
 
         self.virtual_camera = virtual_camera
 
@@ -54,7 +58,7 @@ class AvatarEngine(SettingsManager):
             self.default_fill_value,
             dtype=np.uint8)
 
-        base_options = python.BaseOptions(model_asset_path=model_path)
+        base_options = python.BaseOptions(model_asset_path=model_path_as_str)
 
         options = vision.FaceLandmarkerOptions(
             base_options=base_options,
@@ -79,6 +83,17 @@ class AvatarEngine(SettingsManager):
         thresholds_settings = self.settings.get_thresholds_settings()
         self.face_states.apply_thresholds(settings=thresholds_settings)
 
+    def launch(self):
+        try:
+            self._launch()
+        except KeyboardInterrupt:
+            logger.info('Shutting down')
+        except Exception as e:
+            logger.error(f'Something goes wrong: {e}')
+        finally:
+            self.graceful_shutdown()
+
+
     def _launch(self):
         self.virtual_camera.start()
 
@@ -89,8 +104,17 @@ class AvatarEngine(SettingsManager):
 
         frame_drop_counter = 0
         while True:
+            if self.capture_wrap.has_errors():
+                logger.error('Camera error')
+                break
+
+            if self.virtual_camera.has_errors():
+                logger.error('Virtual camera error')
+                break
+
             if self.testing_mode:
                 if cv2.waitKey(1) & 0xFF == ord('q'):
+                    logger.info('Exiting by hotkey from cv interface')
                     break
 
             raw_frame = self.capture_wrap.get_frame()
@@ -164,32 +188,25 @@ class AvatarEngine(SettingsManager):
 
                 cv2.imshow(winname=self.win_name, mat=combined_frame)
 
-        logger.info('Exiting by hotkey from cv interface')
-        self.graceful_shutdown()
 
     def graceful_shutdown(self):
-        self.capture_wrap.stop()
-        self.virtual_camera.stop()
-        self.face_landmarker.close()
+        logger.info(f'Graceful shutdown')
+
+        threads = [
+            self.capture_wrap,
+            self.virtual_camera,
+        ]
+
+        for t in threads:
+            t.stop()
+
+        for t in threads:
+            t.join()
 
         if self.testing_mode:
             cv2.destroyAllWindows()
 
-        # Time for all processes ending correctly
-        # Otherwise Segfault may occur
-        time.sleep(2)
-
-    def launch(self):
-        try:
-            self._launch()
-        except KeyboardInterrupt:
-            logger.info('Exiting...')
-            self.graceful_shutdown()
-            exit(0)
-        except Exception as e:
-            logger.error('Something goes wrong!')
-            logger.error(e)
-            exit(1)
+        self.face_landmarker.close()
 
     def add_points_to_frame(self, detection_result, frame):
         for face_landmarks in detection_result.face_landmarks:

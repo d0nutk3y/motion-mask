@@ -1,15 +1,17 @@
-from settings import Settings, SettingsException
-from files_io import Storage, FileStorage
+from pathlib import Path
 
-import loggers
+from motion_mask.settings import Settings, SettingsException
+from motion_mask.files_io import Storage, FileStorage
+
+from motion_mask import loggers
 
 logger = loggers.LoggerFactory.get_logger(name=__name__)
 
 
 class SettingsManager:
-    settings_path: str = './settings.json'
 
-    def __init__(self):
+    def __init__(self, settings_path: Path):
+        self.settings_path = settings_path
         self.settings_storage: Storage = FileStorage(self.settings_path)
 
         try:

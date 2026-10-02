@@ -1,12 +1,38 @@
 import argparse
 import enum
+import sys
 
-import monitoring
-import loggers
-from avatar import AvatarException
-from virtual_camera import NoneVirtualCamera, DefaultVirtualCamera
+from importlib.resources import files, as_file
+from pathlib import Path
+
+from motion_mask import monitoring
+from motion_mask import loggers
+
+from motion_mask.avatar import AvatarException
+from motion_mask.virtual_camera import NoneVirtualCamera, DefaultVirtualCamera
 
 logger = loggers.LoggerFactory.get_logger(name=__name__)
+
+
+def check():
+    # Dependencies check
+    try:
+        import pyvirtualcam
+        import mediapipe as mp
+
+        print('[OK] pyvirtualcam version:', pyvirtualcam.__version__)
+        print('[OK] mediapipe version:', mp.__version__)
+    except Exception as e:
+        print('[FAILED] some dependencies import failed')
+        print(f'Exception: {e}')
+
+    # Virtual camera check
+    try:
+        with pyvirtualcam.Camera(width=1280, height=720, fps=10) as cam:
+            print('[OK] virtual cam is avaliable')
+    except Exception as e:
+        print('[FAILED] failed to use virtual camera')
+        print(f'Exception: {e}')
 
 
 class AppMode(enum.StrEnum):
@@ -20,6 +46,18 @@ class DeviceType(enum.StrEnum):
     v4l2loopback = 'v4l2loopback'
     obs = 'obs'
     unitycapture = 'unitycapture'
+
+
+def create_path(path_as_str: str) -> Path:
+    if getattr(sys, 'frozen', False):
+        # Nuitka устанавливает sys.frozen = True в собранном виде
+        base = Path(sys.executable).parent
+    else:
+        # Режим разработки: ресурсы внутри пакета
+        base = Path(__file__).parent
+
+    path = base.joinpath(path_as_str)
+    return path
 
 
 class App:
@@ -50,7 +88,6 @@ class App:
             '-d', '--device',
             type=str,
             required=False,
-            choices=devices_as_str,
             help=f'virtual camera device: {", ".join(devices_as_str)}',
             default=DeviceType.v4l2loopback,
         )
@@ -70,28 +107,36 @@ class App:
 
     @staticmethod
     def create_engine(mode: AppMode,
-                      model_path: str,
+                      model_path: Path,
                       device: str,
-                      avatar_dir_path: str,
+                      avatar_dir_path: Path,
+                      settings_path: Path,
                       ):
 
         if mode == AppMode.SETUP:
-            from calibration_engine import CalibrationEngine
-            engine = CalibrationEngine(model_path=model_path)
+            from motion_mask.calibration_engine import CalibrationEngine
+            engine = CalibrationEngine(
+                model_path=model_path,
+                settings_path=settings_path,
+            )
         elif mode == AppMode.PREVIEW:
-            from avatar_engine import AvatarEngine
+            from motion_mask.avatar_engine import AvatarEngine
             engine = AvatarEngine(model_path=model_path,
                                   avatar_path=avatar_dir_path,
                                   preview_mode=True,
-                                  virtual_camera=NoneVirtualCamera())
+                                  virtual_camera=NoneVirtualCamera(),
+                                  settings_path=settings_path,
+                                  )
         elif mode == AppMode.LIVE:
-            virtual_camera = DefaultVirtualCamera(device=device)
+            from motion_mask.avatar_engine import AvatarEngine
 
-            from avatar_engine import AvatarEngine
+            virtual_camera = DefaultVirtualCamera(device=device)
             engine = AvatarEngine(model_path=model_path,
                                   avatar_path=avatar_dir_path,
                                   preview_mode=False,
-                                  virtual_camera=virtual_camera)
+                                  virtual_camera=virtual_camera,
+                                  settings_path=settings_path,
+                                  )
 
         return engine
 
@@ -109,18 +154,28 @@ class App:
 
     def main(self):
 
+        settings_path = create_path(
+            path_as_str='settings/settings.json',
+        )
+
+        model_path = create_path(
+            path_as_str='landmarkers/face_landmarker.task',
+        )
+
         args = self.parse_args()
 
         mode = AppMode(args.mode)
-        device = DeviceType(args.device)
-        avatar_dir_path = args.avatar
+        device = args.device
 
-        model_path = './landmarkers/face_landmarker.task'
+        avatar_dir_path = create_path(
+            path_as_str=args.avatar,
+        )
 
-        logger.debug(f'args: {model_path}')
+        logger.debug(f'settings_path: {settings_path}')
+        logger.debug(f'model_path: {model_path}')
         logger.debug(f'mode: {mode}')
         logger.debug(f'device: {device}')
-        logger.debug(f'avatar: {avatar_dir_path}')
+        logger.debug(f'avatar dir: {avatar_dir_path}')
 
         try:
             self.start_monitoring(mode=mode)
@@ -128,15 +183,21 @@ class App:
             engine = self.create_engine(mode=mode,
                                         device=device,
                                         avatar_dir_path=avatar_dir_path,
-                                        model_path=model_path)
+                                        model_path=model_path,
+                                        settings_path=settings_path,
+                                        )
 
             engine.launch()
-            exit(0)
+            sys.exit(0)
         except AvatarException as e:
             logger.error(f'Avatar error: {e}')
-            exit(1)
+            sys.exit(1)
+
+
+def run():
+    app = App()
+    app.main()
 
 
 if __name__ == '__main__':
-    app = App()
-    app.main()
+    run()

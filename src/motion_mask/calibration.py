@@ -4,16 +4,16 @@ import time
 
 from mediapipe.tasks.python.vision import FaceLandmarkerResult
 
-from common import (index_to_name_mapping,
-                    EyelidIndexMapping, EyelidThresholdsNames,
-                    BrowThresholdsNames, BrowIndexMapping,
-                    GazeIndexMapping, GazeThresholdsNames,
-                    MouthIndexMapping, MouthThresholdsNames)
+from motion_mask.common import (index_to_name_mapping,
+                                EyelidIndexMapping, EyelidThresholdsNames,
+                                BrowThresholdsNames, BrowIndexMapping,
+                                GazeIndexMapping, GazeThresholdsNames,
+                                MouthIndexMapping, MouthThresholdsNames)
 
-from settings import ThresholdSettings
-from shapes import ShapeForCalibration
+from motion_mask.settings import ThresholdSettings
+from motion_mask.shapes import ShapeForCalibration
 
-import loggers
+from motion_mask import loggers
 
 logger = loggers.LoggerFactory.get_logger(name=__name__)
 

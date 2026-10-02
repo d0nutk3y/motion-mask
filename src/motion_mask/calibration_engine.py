@@ -1,5 +1,6 @@
 import textwrap
 import time
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -7,10 +8,10 @@ from mediapipe import Image, ImageFormat
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 
-import frame_utils as fu
-from calibration import logger, Calibrator
-from capture import CaptureWrap
-from settings_manager import SettingsManager
+from motion_mask import frame_utils as fu
+from motion_mask.calibration import logger, Calibrator
+from motion_mask.capture import CaptureWrap
+from motion_mask.settings_manager import SettingsManager
 
 
 class CalibrationEngine(SettingsManager):
@@ -18,11 +19,11 @@ class CalibrationEngine(SettingsManager):
     default_points_color = (127, 127, 127)
     default_fill_value = 16
 
-    def __init__(self, model_path: str):
-        super().__init__()
+    def __init__(self, settings_path: Path, model_path: Path):
+        super().__init__(settings_path=settings_path)
 
         self.results_count_default = 30
-        self.model_path = model_path
+        model_path_as_str = str(model_path.absolute())
 
         self.win_name = 'Capture'
         self.cap_width = 640
@@ -30,12 +31,13 @@ class CalibrationEngine(SettingsManager):
 
         self.frame_width = 640
         self.frame_height = 360
+
         self.info_frame_back = np.full(
             (self.frame_height, self.frame_width, 4),
             self.default_fill_value,
             dtype=np.uint8)
 
-        base_options = python.BaseOptions(model_asset_path=model_path)
+        base_options = python.BaseOptions(model_asset_path=model_path_as_str)
 
         options = vision.FaceLandmarkerOptions(
             base_options=base_options,
@@ -55,6 +57,18 @@ class CalibrationEngine(SettingsManager):
         self.update_thresholds_mapping(mapping=mapping)
         self.save_settings()
 
+    def launch(self):
+        try:
+            self._launch()
+        except KeyboardInterrupt:
+            logger.info('Shutting down')
+        except Exception as e:
+            logger.error(f'Something goes wrong: {e}')
+        finally:
+            self.graceful_shutdown()
+
+
+
     def _launch(self):
         logger.info("Calibration mode")
 
@@ -66,6 +80,10 @@ class CalibrationEngine(SettingsManager):
         calibrator = Calibrator(settings_setter=lambda x: self.set_thresholds_mapping(x))
 
         while True:
+            if self.capture_wrap.has_errors():
+                logger.error('Camera error')
+                break
+
             key = cv2.waitKey(1) & 0xFF
             if key == ord('q'):
                 break
@@ -132,24 +150,17 @@ class CalibrationEngine(SettingsManager):
 
             cv2.imshow(winname=self.win_name, mat=combined_frame)
 
-        self.quit_routine()
 
-    def quit_routine(self):
+    def graceful_shutdown(self):
+        logger.info(f'Graceful shutdown')
+
         self.capture_wrap.stop()
-        self.face_landmarker.close()
+        self.capture_wrap.join()
+
         cv2.destroyAllWindows()
 
-        time.sleep(1.5)
+        self.face_landmarker.close()
 
-    def launch(self):
-        try:
-            self._launch()
-        except Exception as e:
-            logger.error('Something goes wrong')
-            message = f'{type(e)} : {e}'
-            logger.error(message)
-            self.quit_routine()
-            exit(1)
 
     def add_points_to_frame(self, detection_result, frame):
         for face_landmarks in detection_result.face_landmarks:

@@ -7,7 +7,7 @@ import numpy as np
 from mediapipe.tasks.python.components.containers import Category
 from mediapipe.tasks.python.vision import FaceLandmarkerResult
 
-from common import (
+from motion_mask.common import (
     BrowState,
     EyelidState,
     GazeState,
@@ -15,15 +15,15 @@ from common import (
     MouthThresholdsNames, FaceParts,
     BrowIndexMapping, EyelidIndexMapping, GazeIndexMapping, MouthIndexMapping)
 
-import frame_utils as fu
-from settings import ThresholdSettings
+import motion_mask.frame_utils as fu
+from motion_mask.settings import ThresholdSettings
 
-from shapes import (
+from motion_mask.shapes import (
     Shape,
     ShapeDefault,
 )
 
-import loggers
+from motion_mask import loggers
 
 logger = loggers.LoggerFactory.get_logger(name=__name__)
 
@@ -471,7 +471,7 @@ class FaceStates:
             Layers.brow_right: RightBrow(),
         }
 
-    def apply_thresholds(self, settings: [str, dict[str, ThresholdSettings]]):
+    def apply_thresholds(self, settings):
         for face_part in self.parts_mapping.values():
             for name, threshold in face_part.thresholds.items():
                 threshold.update(threshold_settings=settings[name])
@@ -537,7 +537,7 @@ class DefaultStatesTransformer(StatesTransformer):
 
 
 class AvatarCache:
-    def __init__(self, max_size: int = 64):
+    def __init__(self, max_size: int = 128):
         if max_size <= 8:
             raise ValueError(f'Minimal size of cache must be more than 8')
 
