@@ -440,3 +440,7 @@ uv устанавливается в ~/.local/bin (Linux/macOS) или %USERPROF
 Для билдов через Nuitka:
 
 sudo apt install patchelf
+
+
+Распаковка last release:
+mkdir -p ~/motion-mask && tar -xzf motion-mask-linux.tar.gz -C ~/motion-mask
