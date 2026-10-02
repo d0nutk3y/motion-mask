@@ -46,9 +46,9 @@ jobs:
         with:
           tag_name: main-latest
           target_commitish: ${{ github.sha }}
-          name: "Motion Mask Linux Latest"
+          name: "build #${{ github.run_number }}"
           fail_on_unmatched_files: true
           files: dist/linux/motion-mask-linux.tar.gz
           generate_release_notes: false
-          body: "latest build from main"
+          body: ""
           make_latest: true
