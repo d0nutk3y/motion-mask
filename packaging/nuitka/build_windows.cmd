@@ -7,7 +7,15 @@ set "ROOT_DIR=%~dp0..\.."
 cd /d "%ROOT_DIR%"
 
 set "OUTPUT_DIR=%ROOT_DIR%\dist\windows"
-if exist "%OUTPUT_DIR%" rmdir /s /q "%OUTPUT_DIR%"
+
+if exist "%OUTPUT_DIR%" (
+    rmdir /s /q "%OUTPUT_DIR%"
+    if exist "%OUTPUT_DIR%" (
+        echo ERROR: Failed to remove %OUTPUT_DIR%
+        exit /b 1
+    )
+)
+
 mkdir "%OUTPUT_DIR%"
 
 echo === Building with Nuitka (standalone mode)...
@@ -51,7 +59,7 @@ xcopy /E /I /Y "%ROOT_DIR%\launchers\windows\*" "%DIST_DIR%\"
 
 echo === Creating archive...
 cd /d "%OUTPUT_DIR%"
-tar -a -c -f "%RELEASE_NAME%.zip" -C main.dist .
-
+tar -a -c -f "%TEMP%\%RELEASE_NAME%.zip" -C main.dist .
+move /Y "%TEMP%\%RELEASE_NAME%.zip" "%OUTPUT_DIR%\%RELEASE_NAME%.zip"
 
 echo === Done
