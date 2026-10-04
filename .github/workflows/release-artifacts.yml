@@ -21,22 +21,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download Linux artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: motion-mask-linux.tar.gz
-          path: artifacts/linux
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: ${{ inputs.linux_run_id }}
-          if-no-files-found: error
+        run: gh run download ${{ inputs.linux_run_id }} --name motion-mask-linux.tar.gz --dir artifacts/linux
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download Windows artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: motion-mask-windows.zip
-          path: artifacts/windows
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: ${{ inputs.windows_run_id }}
-          if-no-files-found: error
+        run: gh run download ${{ inputs.windows_run_id }} --name motion-mask-windows.zip --dir artifacts/windows
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify downloaded files
+        run: |
+          ls -la artifacts/linux/
+          test -f artifacts/linux/motion-mask-linux.tar.gz || (echo "Linux artifact missing" && exit 1)
+          ls -la artifacts/windows/
+          test -f artifacts/windows/motion-mask-windows.zip || (echo "Windows artifact missing" && exit 1)
 
       - name: Delete existing rolling tag
         run: git push --delete origin main-latest || true
