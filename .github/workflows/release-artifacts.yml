@@ -23,7 +23,7 @@ jobs:
       - name: Download Linux artifact
         uses: actions/download-artifact@v4
         with:
-          name: motion-mask-linux
+          name: motion-mask-linux.tar.gz
           path: artifacts/linux
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ inputs.linux_run_id }}
@@ -32,7 +32,7 @@ jobs:
       - name: Download Windows artifact
         uses: actions/download-artifact@v4
         with:
-          name: motion-mask-windows
+          name: motion-mask-windows.zip
           path: artifacts/windows
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ inputs.windows_run_id }}

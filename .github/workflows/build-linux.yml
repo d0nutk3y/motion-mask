@@ -31,8 +31,8 @@ jobs:
         run: bash packaging/nuitka/build_linux.sh
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
-          name: motion-mask-linux
+          archive: false
           path: dist/linux/motion-mask-linux.tar.gz
           include-hidden-files: true
