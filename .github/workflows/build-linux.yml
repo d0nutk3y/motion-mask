@@ -33,6 +33,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          archive: false
+          name: motion-mask-linux
+          archive: true
           path: dist/linux/motion-mask-linux.tar.gz
           include-hidden-files: true

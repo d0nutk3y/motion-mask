@@ -33,7 +33,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          archive: false
+          name: motion-mask-windows
+          archive: true
           path: dist/windows/motion-mask-windows.zip
           include-hidden-files: true
 

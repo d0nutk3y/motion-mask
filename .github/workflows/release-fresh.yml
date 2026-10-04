@@ -20,13 +20,13 @@ jobs:
       - name: Download Linux artifact
         uses: actions/download-artifact@v8
         with:
-          name: motion-mask-linux.tar.gz
+          name: motion-mask-linux
           path: artifacts/linux
 
       - name: Download Windows artifact
         uses: actions/download-artifact@v8
         with:
-          name: motion-mask-windows.zip
+          name: motion-mask-windows
           path: artifacts/windows
 
       - name: List downloaded files
