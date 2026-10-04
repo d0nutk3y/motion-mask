@@ -1,0 +1,38 @@
+name: build-windows
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: |
+            pyproject.toml
+            uv.lock
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync --extra build
+
+      - name: Build with Nuitka
+        run: packaging\nuitka\build_windows.cmd
+        shell: cmd
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: motion-mask-windows
+          path: dist/windows/motion-mask-windows.zip
+          include-hidden-files: true
