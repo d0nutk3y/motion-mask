@@ -21,12 +21,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download Linux artifact
-        run: gh run download ${{ inputs.linux_run_id }} --name motion-mask-linux.tar.gz --dir artifacts/linux
+        run: gh run download ${{ inputs.linux_run_id }} --name motion-mask-linux.tar.gz --dir artifacts/linux --repo ${{ github.repository }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download Windows artifact
-        run: gh run download ${{ inputs.windows_run_id }} --name motion-mask-windows.zip --dir artifacts/windows
+        run: gh run download ${{ inputs.windows_run_id }} --name motion-mask-windows.zip --dir artifacts/windows --repo ${{ github.repository }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
