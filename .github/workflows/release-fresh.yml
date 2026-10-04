@@ -18,24 +18,16 @@ jobs:
       actions: read
     steps:
       - name: Download Linux artifact
-        run: |
-          mkdir -p artifacts/linux
-          gh run download ${{ github.run_id }} \
-            --name motion-mask-linux.tar.gz \
-            --dir artifacts/linux \
-            --repo ${{ github.repository }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/download-artifact@v8
+        with:
+          name: motion-mask-linux.tar.gz
+          path: artifacts/linux
 
       - name: Download Windows artifact
-        run: |
-          mkdir -p artifacts/windows
-          gh run download ${{ github.run_id }} \
-            --name motion-mask-windows.zip \
-            --dir artifacts/windows \
-            --repo ${{ github.repository }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/download-artifact@v8
+        with:
+          name: motion-mask-windows.zip
+          path: artifacts/windows
 
       - name: List downloaded files
         run: find artifacts -type f
