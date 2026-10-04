@@ -58,7 +58,16 @@ echo === Copying launchers...
 xcopy /E /I /Y "%ROOT_DIR%\launchers\windows\*" "%DIST_DIR%\"
 
 echo === Creating archive...
-cd /d "%OUTPUT_DIR%"
-powershell -NoProfile -Command "Compress-Archive -Path '%DIST_DIR%\*' -DestinationPath '%OUTPUT_DIR%\%RELEASE_NAME%.zip' -Force"
+
+echo === Before creating archive:
+echo ====== DIST_DIR: %DIST_DIR%
+echo ====== OUTPUT_DIR: %OUTPUT_DIR%
+
+powershell -NoProfile -Command "Compress-Archive -Path '%DIST_DIR%\*' -DestinationPath '%OUTPUT_DIR%\%RELEASE_NAME%.zip' -Force -Exclude '*.zip'"
+
+echo === After creating archive:
+echo ====== DIST_DIR: %DIST_DIR%
+echo ====== OUTPUT_DIR: %OUTPUT_DIR%
+
 
 echo === Done
