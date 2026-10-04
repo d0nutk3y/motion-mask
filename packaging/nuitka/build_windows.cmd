@@ -2,11 +2,12 @@
 
 set "RELEASE_NAME=motion-mask-windows"
 
-set "SCRIPT_DIR=%CD%"
+set "SCRIPT_DIR=%~dp0"
 
-cd /d ..\..
+cd /d "$SCRIPT_DIR..\.."
 
 set "PROJECT_DIR=%CD%"
+
 set "OUTPUT_DIR=%PROJECT_DIR%\dist\windows"
 set "DIST_DIR=%OUTPUT_DIR%\main.dist"
 
