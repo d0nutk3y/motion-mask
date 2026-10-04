@@ -11,7 +11,7 @@ set "PROJECT_DIR=%CD%"
 set "OUTPUT_DIR=%PROJECT_DIR%\dist\windows"
 set "DIST_DIR=%OUTPUT_DIR%\main.dist"
 
-set "PACKAGE_CONFIG=%SCRIPT_DIR%\nuitka-package.config.yml"
+set "PACKAGE_CONFIG=%SCRIPT_DIR%nuitka-package.config.yml"
 
 echo ====== SCRIPT_DIR: %SCRIPT_DIR%
 echo ====== PROJECT_DIR: %PROJECT_DIR%
@@ -29,10 +29,7 @@ if exist "%OUTPUT_DIR%" (
 
 mkdir "%OUTPUT_DIR%"
 
-exit /b 1
-
 echo === Building with Nuitka (standalone mode)...
-
 uv run python -m nuitka ^
     --mode=standalone ^
     --no-deployment-flag=self-execution ^
@@ -53,13 +50,12 @@ if errorlevel 1 (
 
 echo === Nuitka build complete.
 
-
+echo === Copying resources...
 if not exist "%DIST_DIR%" (
     echo ERROR: main.dist not found. Nuitka may have failed.
     exit /b 1
 )
 
-echo === Copying resources...
 xcopy /E /I /Y "%PROJECT_DIR%\src\motion_mask\avatars" "%DIST_DIR%\avatars"
 xcopy /E /I /Y "%PROJECT_DIR%\src\motion_mask\landmarkers" "%DIST_DIR%\landmarkers"
 xcopy /E /I /Y "%PROJECT_DIR%\src\motion_mask\settings" "%DIST_DIR%\settings"
@@ -68,20 +64,6 @@ echo === Copying launchers...
 xcopy /E /I /Y "%PROJECT_DIR%\launchers\windows\*" "%DIST_DIR%\"
 
 echo === Creating archive...
-
-<<<<<<< HEAD
-echo === Before creating archive:
-echo ====== DIST_DIR: %DIST_DIR%
-echo ====== OUTPUT_DIR: %OUTPUT_DIR%
-
-powershell -NoProfile -Command "Compress-Archive -Path '%DIST_DIR%\*' -DestinationPath '%OUTPUT_DIR%\%RELEASE_NAME%.zip' -Force -Exclude '*.zip'"
-
-echo === After creating archive:
-echo ====== DIST_DIR: %DIST_DIR%
-echo ====== OUTPUT_DIR: %OUTPUT_DIR%
-
-=======
 powershell -NoProfile -Command "Compress-Archive -Path '%DIST_DIR%\*' -DestinationPath '%OUTPUT_DIR%\%RELEASE_NAME%.zip' -Force"
->>>>>>> 44f0bfd (fix: build routine)
 
 echo === Done
