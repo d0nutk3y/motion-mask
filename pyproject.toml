@@ -10,6 +10,8 @@ dependencies = [
     "mediapipe",
     "pyvirtualcam",
     "psutil",
+    "pytermtk",
+    "cv2-enumerate-cameras",
 ]
 
 [project.optional-dependencies]

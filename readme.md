@@ -1,5 +1,7 @@
 # motion-mask
 
+# ВАЖНО: Ведутся работы по добавлению лаунчера. Код в devel ветке нестабилен. 
+
 ## Общее
 
 Скромное desktop-приложение для трансляции 2D-аватара в виртуальную камеру на основе
@@ -74,6 +76,13 @@
 - [mediapipe](https://github.com/google-ai-edge/mediapipe)
 - [pyvirtualcam](https://github.com/letmaik/pyvirtualcam)
 - [psutil](https://github.com/giampaolo/psutil)
+
+### Дополнительные зависимости
+
+Для лаунчера:
+
+- [cv2-enumerate-cameras](https://github.com/lukehugh/cv2_enumerate_cameras)
+- [pyTermTk](https://github.com/ceccopierangiolieugenio/pyTermTk)
 
 Для сборки:
 

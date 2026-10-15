@@ -11,23 +11,29 @@ from mediapipe.tasks.python import vision
 from motion_mask import frame_utils as fu
 from motion_mask.calibration import logger, Calibrator
 from motion_mask.capture import CaptureWrap
-from motion_mask.settings_manager import SettingsManager
+from motion_mask.settings_manager import AvatarSettingsManager
 
 
-class CalibrationEngine(SettingsManager):
+class CalibrationEngine(AvatarSettingsManager):
     default_front_color = (239, 239, 239)
     default_points_color = (127, 127, 127)
     default_fill_value = 16
 
-    def __init__(self, settings_path: Path, model_path: Path):
-        super().__init__(settings_path=settings_path)
+    def __init__(self,
+                 avatar_settings_path: Path,
+                 model_path: Path,
+                 camera : CaptureWrap,
+                 ):
+        super().__init__(avatar_settings_path=avatar_settings_path)
+
 
         self.results_count_default = 30
         model_path_as_str = str(model_path.absolute())
 
         self.win_name = 'Capture'
-        self.cap_width = 640
-        self.cap_height = 360
+        self.capture_wrap = camera
+        self.cap_width = camera.width
+        self.cap_height = camera.height
 
         self.frame_width = 640
         self.frame_height = 360
@@ -67,14 +73,10 @@ class CalibrationEngine(SettingsManager):
         finally:
             self.graceful_shutdown()
 
-
-
     def _launch(self):
         logger.info("Calibration mode")
 
-        self.capture_wrap = CaptureWrap(number=self.capture_number,
-                                        width=self.cap_width,
-                                        height=self.cap_height)
+
         self.capture_wrap.start()
 
         calibrator = Calibrator(settings_setter=lambda x: self.set_thresholds_mapping(x))
@@ -150,7 +152,6 @@ class CalibrationEngine(SettingsManager):
 
             cv2.imshow(winname=self.win_name, mat=combined_frame)
 
-
     def graceful_shutdown(self):
         logger.info(f'Graceful shutdown')
 
@@ -160,7 +161,6 @@ class CalibrationEngine(SettingsManager):
         cv2.destroyAllWindows()
 
         self.face_landmarker.close()
-
 
     def add_points_to_frame(self, detection_result, frame):
         for face_landmarks in detection_result.face_landmarks:

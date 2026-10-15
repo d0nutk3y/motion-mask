@@ -6,6 +6,7 @@ from pycallgraph2 import PyCallGraph, GlobbingFilter, Config, PyCallGraphExcepti
 from pycallgraph2.output import GraphvizOutput
 
 import main
+import motion_mask.constants
 
 
 class GraphvizOutputCustom(GraphvizOutput):
@@ -84,7 +85,7 @@ def go_calls_tests():
     model_path = './landmarkers/face_landmarker.task'
 
     with PyCallGraph(output=graphviz_output, config=config):
-        main.launch(mode=main.AppMode.PREVIEW,
+        main.launch(mode=motion_mask.constants.AppMode.PREVIEW,
                     avatar_dir_path=avatar_dir_path,
                     model_path=model_path)
 

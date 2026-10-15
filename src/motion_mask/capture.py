@@ -9,11 +9,18 @@ logger = loggers.LoggerFactory.get_logger(name=__name__)
 
 
 class CaptureWrap(threading.Thread):
-    def __init__(self, number=0, width=640, height=360, fps=30):
+    def __init__(self, camera_index: int,
+                 camera_backend: int,
+                 width: int = 640,
+                 height: int = 360,
+                 fps: int = 30):
+
         super().__init__()
         self.capture = None
 
-        self.number = number
+        self.camera_index = camera_index
+        self.camera_backend = camera_backend
+
         self.width = width
         self.height = height
         self._frame_interval = 1.0 / fps
@@ -28,7 +35,9 @@ class CaptureWrap(threading.Thread):
 
     def run(self):
         try:
-            self.capture = cv2.VideoCapture(self.number)
+            self.capture = cv2.VideoCapture(
+                self.camera_index,
+                self.camera_backend)
 
             if not self.capture.isOpened():
                 raise RuntimeError("Can not open camera")

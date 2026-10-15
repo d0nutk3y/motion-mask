@@ -3,10 +3,24 @@ import sys
 from datetime import datetime
 
 
+class ShortLevelFormatter(logging.Formatter):
+    def formatTime(self, record, datefmt=None):
+        dt = datetime.fromtimestamp(record.created)
+        return dt.strftime("%H:%M:%S:%f")[:-2]
+
+    def format(self, record):
+        original = record.levelname
+        record.levelname = original[:1]
+        try:
+            return super().format(record)
+        finally:
+            record.levelname = original
+
+
 class LoggerFactory:
     __app_name = 'motion-mask'
     default_logging_lvl = logging.DEBUG
-    stream = sys.stdout
+    stream = sys.stderr
 
     @classmethod
     def _create_stream_handler(cls, is_light: bool):
@@ -14,11 +28,12 @@ class LoggerFactory:
         stream_handler.setLevel(cls.default_logging_lvl)
 
         if is_light:
-            format_str = '%(asctime)s | %(message)s'
+            format_str = '%(asctime)s | %(levelname)s | %(message)s'
+            stream_formatter = ShortLevelFormatter(format_str)
         else:
             format_str = '%(asctime)s | %(name)s | %(levelname)s | %(message)s'
+            stream_formatter = CustomFormatter(format_str)
 
-        stream_formatter = CustomFormatter(format_str)
         stream_handler.setFormatter(stream_formatter)
 
         return stream_handler
@@ -61,6 +76,7 @@ class LoggerFactory:
                 filename=f'{cls.__app_name}_info.log')
             l.addHandler(info_file_handler)
         return l
+
 
 class CustomFormatter(logging.Formatter):
     def formatTime(self, record, datefmt=None):

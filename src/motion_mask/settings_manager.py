@@ -8,11 +8,10 @@ from motion_mask import loggers
 logger = loggers.LoggerFactory.get_logger(name=__name__)
 
 
-class SettingsManager:
-
-    def __init__(self, settings_path: Path):
-        self.settings_path = settings_path
-        self.settings_storage: Storage = FileStorage(self.settings_path)
+class AvatarSettingsManager:
+    def __init__(self, avatar_settings_path: Path):
+        self.avatar_settings_path = avatar_settings_path
+        self.settings_storage: Storage = FileStorage(self.avatar_settings_path)
 
         try:
             self.load_settings()

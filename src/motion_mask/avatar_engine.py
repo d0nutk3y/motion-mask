@@ -13,24 +13,29 @@ from motion_mask import loggers
 from motion_mask.avatar import FaceStates, Avatar, DefaultStatesTransformer
 from motion_mask.capture import CaptureWrap
 from motion_mask.settings import CommonSettings
-from motion_mask.settings_manager import SettingsManager
+from motion_mask.settings_manager import AvatarSettingsManager
 
 logger = loggers.LoggerFactory.get_logger(name=__name__)
 
 
-class AvatarEngine(SettingsManager):
+class AvatarEngine(AvatarSettingsManager):
     default_front_color = (0, 239, 0)
     default_points_color = (0, 127, 0)
     default_fill_value = 16
 
     def __init__(self,
-                 settings_path: Path,
+                 avatar_settings_path: Path,
                  model_path: Path,
                  avatar_path: Path,
                  preview_mode: bool = True,
+                 camera : CaptureWrap=None,
                  virtual_camera=None):
 
-        super().__init__(settings_path=settings_path)
+        super().__init__(avatar_settings_path=avatar_settings_path)
+
+        self.capture_wrap = camera
+        self.cap_width = camera.width
+        self.cap_height = camera.height
 
         self.fps = 30
 
@@ -48,8 +53,7 @@ class AvatarEngine(SettingsManager):
         self.virtual_camera = virtual_camera
 
         self.win_name = 'Capture'
-        self.cap_width = 640
-        self.cap_height = 360
+
 
         self.frame_width = 640
         self.frame_height = 360
@@ -57,6 +61,8 @@ class AvatarEngine(SettingsManager):
             (self.frame_height, self.frame_width, 4),
             self.default_fill_value,
             dtype=np.uint8)
+
+
 
         base_options = python.BaseOptions(model_asset_path=model_path_as_str)
 
@@ -72,7 +78,6 @@ class AvatarEngine(SettingsManager):
 
         self.face_landmarker = vision.FaceLandmarker.create_from_options(options)
 
-        self.capture_number = 0
 
         self.apply_settings()
         logger.info("Settings applied")
@@ -97,9 +102,6 @@ class AvatarEngine(SettingsManager):
     def _launch(self):
         self.virtual_camera.start()
 
-        self.capture_wrap = CaptureWrap(number=self.capture_number,
-                                        width=self.cap_width,
-                                        height=self.cap_height)
         self.capture_wrap.start()
 
         frame_drop_counter = 0
