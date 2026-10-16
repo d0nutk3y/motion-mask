@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from motion_mask.settings import Settings, SettingsException
+from motion_mask.avatar_settings import Settings, SettingsException
 from motion_mask.files_io import Storage, FileStorage
 
 from motion_mask import loggers

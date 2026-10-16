@@ -1,5 +1,6 @@
 import dataclasses
 import enum
+import json
 import pathlib
 from pprint import pprint
 
@@ -14,8 +15,8 @@ logger = loggers.LoggerFactory.get_logger(name=__name__)
 class SettingName(enum.StrEnum):
     mode = 'mode'
     camera = 'camera'
-    virtual_camera = 'virtual_camera'
-    avatar_name = 'avatar_name'
+    virtual_camera = 'virtual camera'
+    avatar_name = 'avatar name'
 
 
 class DefaultStuffFactory:
@@ -295,8 +296,39 @@ class LaunchSettings:
 
             option.new_choice = value
 
+    def to_json(self) -> str:
+        settings = {name : option.new_choice
+                    for name, option in self._data.items()}
 
-def create_default_launch_settings():
+        return json.dumps(
+            settings,
+            indent=2,
+        )
+
+    @classmethod
+    def from_json(cls, text: str) -> 'LaunchSettings':
+        d = json.loads(text)
+
+        print(text)
+        print(d)
+        input()
+
+        new_settings = LaunchSettings()
+
+
+
+        # d_cs: dict = d[SettingsSection.common_settings]
+        # new_settings.common_settings_mapping = {k: cls.convert(v)
+        #                                         for k, v in d_cs.items()}
+        #
+        # d_ts: dict = d[SettingsSection.threshold_settings]
+        # new_settings.thresholds_settings_mapping = {k: ThresholdSettings.create_from_dict(d=v)
+        #                                             for k, v in d_ts.items()}
+
+        return new_settings
+
+
+def create_default_launch_settings() -> LaunchSettings:
     df = DefaultStuffFactory()
     default_settings = df.create_default_settings()
 
@@ -347,7 +379,10 @@ def tests():
 
     ld = create_default_launch_settings()
     ld.update_all_options()
+
     ppprint(ld.to_dict())
+
+    print(ld.to_json())
 
 
 if __name__ == '__main__':

@@ -10,7 +10,7 @@ from motion_mask.common import (index_to_name_mapping,
                                 GazeIndexMapping, GazeThresholdsNames,
                                 MouthIndexMapping, MouthThresholdsNames)
 
-from motion_mask.settings import ThresholdSettings
+from motion_mask.avatar_settings import ThresholdSettings
 from motion_mask.shapes import ShapeForCalibration
 
 from motion_mask import loggers

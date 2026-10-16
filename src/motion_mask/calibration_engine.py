@@ -11,7 +11,7 @@ from mediapipe.tasks.python import vision
 from motion_mask import frame_utils as fu
 from motion_mask.calibration import logger, Calibrator
 from motion_mask.capture import CaptureWrap
-from motion_mask.settings_manager import AvatarSettingsManager
+from motion_mask.avatar_settings_manager import AvatarSettingsManager
 
 
 class CalibrationEngine(AvatarSettingsManager):

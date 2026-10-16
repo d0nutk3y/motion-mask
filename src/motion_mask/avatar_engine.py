@@ -12,8 +12,8 @@ from motion_mask import loggers
 
 from motion_mask.avatar import FaceStates, Avatar, DefaultStatesTransformer
 from motion_mask.capture import CaptureWrap
-from motion_mask.settings import CommonSettings
-from motion_mask.settings_manager import AvatarSettingsManager
+from motion_mask.avatar_settings import CommonSettings
+from motion_mask.avatar_settings_manager import AvatarSettingsManager
 
 logger = loggers.LoggerFactory.get_logger(name=__name__)
 

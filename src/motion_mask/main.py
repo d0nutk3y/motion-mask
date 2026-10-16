@@ -11,9 +11,11 @@ from motion_mask import loggers
 from motion_mask.avatar import AvatarException
 from motion_mask.capture import CaptureWrap
 from motion_mask.constants import AppMode, VirtualCamera
+from motion_mask.files_io import FileStorage
 from motion_mask.launch_settings import (LaunchSettings,
                                          SettingName,
                                          create_default_launch_settings, CameraInfo)
+from motion_mask.launcher import Launcher
 
 from motion_mask.virtual_camera import NoneVirtualCamera, DefaultVirtualCamera
 
@@ -67,38 +69,39 @@ class CliOptionsParser:
 
         parser.add_argument(
             '--mode',
+            default='',
             type=str,
-            required=True,
+            required=False,
             metavar='MODE',
             help=f'application mode: {', '.join(modes_as_str)}'
         )
 
         parser.add_argument(
             '--camera',
+            default='',
             type=str,
             required=False,
             metavar='CAMERA',
             help=f'camera device: /dev/video0, /dev/video1, Insta360 Link',
-            default=VirtualCamera.v4l2loopback,
         )
 
         devices_as_str = [str(device) for device in VirtualCamera]
         parser.add_argument(
             '--virtual-camera',
+            default='',
             type=str,
             required=False,
             metavar='VIRTUAL_CAMERA',
             help=f'virtual camera device: {', '.join(devices_as_str)}',
-            default=VirtualCamera.v4l2loopback,
         )
 
         parser.add_argument(
             '--avatar-name',
+            default='',
             type=str,
             required=False,
             metavar='AVATAR_NAME',
             help=f'name of avatar dir in ./avatars',
-            default='kanisan',
         )
 
         args = parser.parse_args()
@@ -108,10 +111,9 @@ class CliOptionsParser:
     def parse_settings(self) -> dict[SettingName, str]:
         args = self.parse_args()
 
-        mode = AppMode(args.mode)
+        mode = args.mode
         camera = args.camera
         virtual_camera = args.virtual_camera
-
         avatar_name = args.avatar_name
 
         logger.debug(f'cli parsed: mode: {mode}')
@@ -119,12 +121,14 @@ class CliOptionsParser:
         logger.debug(f'cli parsed: virtual camera: {virtual_camera}')
         logger.debug(f'cli parsed: avatar name: {avatar_name}')
 
-        return {
+        parsed = {
             SettingName.mode: mode,
             SettingName.camera: camera,
             SettingName.virtual_camera: virtual_camera,
             SettingName.avatar_name: avatar_name,
         }
+
+        return parsed
 
 
 class App:
@@ -154,32 +158,27 @@ class App:
         try:
             if not cap.isOpened():
                 logger.debug(
-                    f"Camera '{camera_info.name}' (index={camera_info.index}, "
-                    f"path={camera_info.path}) failed to open"
+                    f'Camera failed to open: {camera_info.get_info()}'
                 )
                 return False
 
-            # Пытаемся прочитать кадр несколько раз —
-            # первое чтение может вернуть False даже для рабочей камеры
             for attempt in range(max_attempts):
                 ret, frame = cap.read()
                 if ret and frame is not None and frame.size > 0:
                     logger.debug(
-                        f"Camera '{camera_info.name}' (index={camera_info.index}) "
-                        f"is working. Frame shape: {frame.shape}"
+                        f'Camera is working: {camera_info.get_info()}'
                     )
                     return True
 
             logger.debug(
-                f"Camera '{camera_info.name}' (index={camera_info.index}) "
-                f"opened but returned no frames after {max_attempts} attempts"
+                f'Camera opened but returned no frames: {camera_info.get_info()}'
             )
             return False
 
         except Exception as e:
             logger.warning(
-                f"Camera '{camera_info.name}' (index={camera_info.index}) "
-                f"raised exception during check: {e}"
+                f'Camera raised exception during check: {camera_info.get_info()}\n'
+                f'Exception {e}'
             )
             return False
 
@@ -313,12 +312,48 @@ def run():
     op = CliOptionsParser()
     parsed_settings = op.parse_settings()
 
+    for n, s in parsed_settings.items():
+        if s == '':
+            logger.info(f'No value for argument: {n}')
+            run_launcher_and_app()
+            return
+
+    run_cli_app(parsed_settings=parsed_settings)
+    return
+
+
+def run_cli_app(parsed_settings):
     launch_settings: LaunchSettings = create_default_launch_settings()
 
     launch_settings.update_all_options()
     launch_settings.apply_settings(settings=parsed_settings)
 
     app = App(launch_settings=launch_settings)
+    app.launch()
+
+
+def run_launcher_and_app():
+    path_to_saved_launch_settings = create_path(
+        path_as_str=f'./settings/launch.json')
+
+    storage = FileStorage(filepath=path_to_saved_launch_settings)
+
+    if not path_to_saved_launch_settings.exists():
+        launch_settings = create_default_launch_settings()
+    else:
+        settings_as_text = storage.load()
+        launch_settings = LaunchSettings.from_json(text=settings_as_text)
+
+    launch_settings.update_all_options()
+
+    launcher = Launcher(launch_settings=launch_settings)
+    launcher.run()
+
+    settings_after_launcher = launcher.launch_settings
+    storage.save(text=settings_after_launcher.to_json())
+
+    sys.exit(1)
+    app = App(launch_settings=settings_after_launcher)
     app.launch()
 
 

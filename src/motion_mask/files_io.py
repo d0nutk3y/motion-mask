@@ -45,15 +45,3 @@ class FileStorage(Storage):
         except Exception as e:
             logger.error(f"Load error: {type(e)}: {e}")
             raise StorageException()
-
-
-if __name__ == "__main__":
-    fs = FileStorage(filepath='./test.json')
-    test_text = 'some\ntest_text\nfor test'
-
-    fs.save(text=test_text)
-
-    text_from_file = fs.load()
-    print(text_from_file)
-
-    print(f'Is same: {test_text == text_from_file}')

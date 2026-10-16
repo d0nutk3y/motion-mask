@@ -16,7 +16,7 @@ from motion_mask.common import (
     BrowIndexMapping, EyelidIndexMapping, GazeIndexMapping, MouthIndexMapping)
 
 import motion_mask.frame_utils as fu
-from motion_mask.settings import ThresholdSettings
+from motion_mask.avatar_settings import ThresholdSettings
 
 from motion_mask.shapes import (
     Shape,
