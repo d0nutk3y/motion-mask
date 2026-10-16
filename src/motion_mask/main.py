@@ -14,7 +14,8 @@ from motion_mask.constants import AppMode, VirtualCamera
 from motion_mask.files_io import FileStorage
 from motion_mask.launch_settings import (LaunchSettings,
                                          SettingName,
-                                         create_default_launch_settings, CameraInfo)
+                                         create_launch_settings, CameraInfo,
+                                         CamerasInfoStorage)
 from motion_mask.launcher import Launcher
 
 from motion_mask.virtual_camera import NoneVirtualCamera, DefaultVirtualCamera
@@ -205,7 +206,7 @@ class App:
             avatar_dir_path: Path,
             settings_path: Path,
     ):
-        cis = self.launch_settings.camera_info_storage
+        cis = CamerasInfoStorage()
 
         cameras_infos = cis.get_camera_info(ref=camera_ref)
 
@@ -323,9 +324,9 @@ def run():
 
 
 def run_cli_app(parsed_settings):
-    launch_settings: LaunchSettings = create_default_launch_settings()
+    launch_settings: LaunchSettings = create_launch_settings()
 
-    launch_settings.update_all_options()
+    launch_settings.sync_with_sources()
     launch_settings.apply_settings(settings=parsed_settings)
 
     app = App(launch_settings=launch_settings)
@@ -339,20 +340,23 @@ def run_launcher_and_app():
     storage = FileStorage(filepath=path_to_saved_launch_settings)
 
     if not path_to_saved_launch_settings.exists():
-        launch_settings = create_default_launch_settings()
+        launch_settings = create_launch_settings()
     else:
         settings_as_text = storage.load()
         launch_settings = LaunchSettings.from_json(text=settings_as_text)
 
-    launch_settings.update_all_options()
+    launch_settings.sync_with_sources()
+
+    print(launch_settings.to_json())
 
     launcher = Launcher(launch_settings=launch_settings)
     launcher.run()
 
-    settings_after_launcher = launcher.launch_settings
+    settings_after_launcher = launcher.get_updated_launch_settings()
     storage.save(text=settings_after_launcher.to_json())
 
     sys.exit(1)
+
     app = App(launch_settings=settings_after_launcher)
     app.launch()
 

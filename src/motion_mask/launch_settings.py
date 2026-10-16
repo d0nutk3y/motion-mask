@@ -19,16 +19,6 @@ class SettingName(enum.StrEnum):
     avatar_name = 'avatar name'
 
 
-class DefaultStuffFactory:
-    def create_default_settings(self) -> dict[SettingName, str]:
-        return {
-            SettingName.mode: 'preview',
-            SettingName.camera: '/dev/video0',
-            SettingName.virtual_camera: '/dev/video9',
-            SettingName.avatar_name: 'kanisan',
-        }
-
-
 class SettingsSource:
     def get_option_value(self):
         raise NotImplementedError()
@@ -45,16 +35,22 @@ class DictSettingsSource(SettingsSource):
         return self.settings_dict[SettingName(self.name)]
 
 
+@dataclasses.dataclass
+class Choice:
+    value: str | int
+    label: str
+
+
 class ChoicesSource:
-    def get_choices(self):
+    def get_choices(self) -> list[Choice]:
         raise NotImplementedError()
 
 
 class ModeChoicesSource(ChoicesSource):
     _DEFAULT_MODES = [mode.value for mode in AppMode]
 
-    def get_choices(self):
-        return self._DEFAULT_MODES
+    def get_choices(self) -> list[Choice]:
+        return [Choice(value=str(x), label=str(x)) for x in self._DEFAULT_MODES]
 
 
 @dataclasses.dataclass
@@ -143,11 +139,12 @@ class CameraChoicesSource(ChoicesSource):
     def __init__(self, camera_info_storage: CamerasInfoStorage):
         self.camera_info_storage = camera_info_storage
 
-    def get_choices(self):
+    def get_choices(self) -> list[Choice]:
         self.camera_info_storage.update()
         camera_infos = self.camera_info_storage.camera_infos
 
-        return [x.index for x in camera_infos]
+        return [Choice(value=x.index, label=f'{x.index}: {x.name} {x.path}')
+                for x in camera_infos]
 
 
 class AvatarPathChoicesSource(ChoicesSource):
@@ -162,98 +159,64 @@ class AvatarPathChoicesSource(ChoicesSource):
         logger.debug(f'CWD: {pathlib.Path.cwd()}')
         logger.debug(f'Absolute path: {self.default_avatars_dir_path.resolve()}')
 
-    def get_choices(self):
-        avatars_paths = list()
+    def get_choices(self) -> list[Choice]:
+        avatars_paths_choices: list[Choice] = list()
         path = self.default_avatars_dir_path
 
         for child in path.glob(pattern='*'):
             if child.is_dir():
-                logger.debug(f'found avatar dir: {child.absolute()}')
-                avatars_paths.append(child.name)
+                logger.debug(f'Found avatar dir: {child.absolute()}')
+                choice = Choice(
+                    value=child.name,
+                    label=child.name)
+                avatars_paths_choices.append(choice)
 
-        return avatars_paths
+        return avatars_paths_choices
 
 
 class Option:
-    name: SettingName
-
-    _available_choices: list[str] | None
-    _old_choice: str | None
-    _new_choice: str | None
-
     def __init__(self, name: SettingName,
                  settings_source: SettingsSource,
                  choices_source: ChoicesSource):
-        self.name = name
+        self.name: SettingName = name
+        self._available_choices: dict[str, Choice] = {}
+        self._current_choice: Choice = Choice(label='xxx', value='')
+
         self.settings_source = settings_source
         self.choices_source = choices_source
 
-        self._available_choices = None
-        self._old_choice = None
-        self._new_choice = None
+    def is_current_choice_legit(self):
+        if not self._current_choice.value in self._available_choices:
+            raise ValueError(f'Value {self._current_choice.value} '
+                             f'is not in {self._available_choices.values()}')
 
-    def is_new_choice_legit(self):
-        if not self._new_choice in self._available_choices:
-            raise ValueError(f'Value {self._new_choice} '
-                             f'is not in {self._available_choices}')
+    def sync_with_sources(self):
+        self._available_choices = {c.value: c for c
+                                   in self.choices_source.get_choices()}
 
-    def is_valid(self):
-        if self._available_choices is None or not self._available_choices:
-            return False
-
-        if self._old_choice is None:
-            return False
-
-        if self._new_choice is None:
-            return False
-
-        return True
-
-    def update(self):
-        self._available_choices = self.choices_source.get_choices()
-
-        available_choices_as_text = ', '.join([str(x) for x in self._available_choices])
+        available_choices_as_text = ', '.join([str(x) for x in self._available_choices.keys()])
         logger.debug(f'{self.name}: updated available choices: {available_choices_as_text}')
 
-        self._old_choice = self.settings_source.get_option_value()
-        logger.debug(f'{self.name}: updated old_choice: {self._old_choice}')
+        value = self.settings_source.get_option_value()
+        self._current_choice = Choice(value=value, label=value)
 
-    def is_old_choice_in_choices(self) -> bool:
-        if self._old_choice is None or self._available_choices is None:
-            return False
-
-        return self._old_choice in self._available_choices
-
-    def is_new_value_set(self):
-        return self._new_choice is not None
+        logger.debug(f'Current choice for {self.name}: updated with value: {value}')
 
     @property
     def available_choices(self):
         return self._available_choices
 
     @property
-    def old_choice(self):
-        return self._old_choice
+    def current_choice(self):
+        return self._current_choice
 
-    @property
-    def new_choice(self):
-        return self._new_choice
-
-    @new_choice.setter
-    def new_choice(self, value):
-        self._new_choice = value
-
-    def get_info(self):
-        return {
-            'old': str(self.old_choice),
-            'new': str(self.new_choice),
-            'choices': self.available_choices,
-        }
+    @current_choice.setter
+    def current_choice(self, value):
+        self._current_choice = value
 
 
 class LaunchSettings:
-    def __init__(self, camera_info_storage: CamerasInfoStorage):
-        self.camera_info_storage = camera_info_storage
+    def __init__(self):
         self._data: dict[SettingName, Option] = dict()
 
     def add_option(self, option: Option):
@@ -266,25 +229,21 @@ class LaunchSettings:
         return self._data.get(name)
 
     def get_new_choice(self, name: SettingName):
-        return self._data.get(name).new_choice
+        return self._data.get(name).current_choice
 
-    def to_dict(self):
-        return {k.value: v.get_info()
-                for k, v in self._data.items()}
-
-    def update_all_options(self):
+    def sync_with_sources(self):
         for o in self._data.values():
             try:
-                o.update()
+                o.sync_with_sources()
             except Exception as e:
                 message = f'option:{o.name} e:{e}'
                 raise RuntimeError(f'Can not update option: {message}')
 
     def check_all_options(self):
         for option in self._data.values():
-            if not option.is_new_choice_legit():
+            if not option.is_current_choice_legit():
                 logger.warning(f'Applied setting is not legit: '
-                               f'{option.name}={option.new_choice}')
+                               f'{option.name}={option.current_choice}')
 
     def apply_settings(self, settings: dict[SettingName, str]):
         for name, value in settings.items():
@@ -294,10 +253,10 @@ class LaunchSettings:
                 logger.warning(f'No option for name {name}')
                 continue
 
-            option.new_choice = value
+            option.current_choice = Choice(value=value, label=value)
 
     def to_json(self) -> str:
-        settings = {name : option.new_choice
+        settings = {name: option.current_choice.value
                     for name, option in self._data.items()}
 
         return json.dumps(
@@ -309,34 +268,25 @@ class LaunchSettings:
     def from_json(cls, text: str) -> 'LaunchSettings':
         d = json.loads(text)
 
-        print(text)
-        print(d)
-        input()
-
-        new_settings = LaunchSettings()
-
-
-
-        # d_cs: dict = d[SettingsSection.common_settings]
-        # new_settings.common_settings_mapping = {k: cls.convert(v)
-        #                                         for k, v in d_cs.items()}
-        #
-        # d_ts: dict = d[SettingsSection.threshold_settings]
-        # new_settings.thresholds_settings_mapping = {k: ThresholdSettings.create_from_dict(d=v)
-        #                                             for k, v in d_ts.items()}
+        new_settings = create_launch_settings(settings_dict=d)
 
         return new_settings
 
 
-def create_default_launch_settings() -> LaunchSettings:
-    df = DefaultStuffFactory()
-    default_settings = df.create_default_settings()
+def create_launch_settings(settings_dict: dict[SettingName, str] = None) -> LaunchSettings:
+    if settings_dict is None:
+        settings_dict = {
+            SettingName.mode: 'preview',
+            SettingName.camera: '/dev/video0',
+            SettingName.virtual_camera: '/dev/video9',
+            SettingName.avatar_name: 'kanisan',
+        }
 
     def create_option(name: SettingName, choices_source: ChoicesSource):
         return Option(name=name,
                       settings_source=DictSettingsSource(
                           name=name,
-                          settings_dict=default_settings
+                          settings_dict=settings_dict
                       ),
                       choices_source=choices_source
                       )
@@ -363,7 +313,7 @@ def create_default_launch_settings() -> LaunchSettings:
         choices_source=AvatarPathChoicesSource()
     )
 
-    ld = LaunchSettings(camera_info_storage=cis)
+    ld = LaunchSettings()
 
     ld.add_option(mode_option)
     ld.add_option(camera_option)
@@ -375,12 +325,10 @@ def create_default_launch_settings() -> LaunchSettings:
 
 def tests():
     def ppprint(text):
-        pprint(text, sort_dicts=False, width=60)
+        pprint(text, sort_dicts=False, width=61)
 
-    ld = create_default_launch_settings()
-    ld.update_all_options()
-
-    ppprint(ld.to_dict())
+    ld = create_launch_settings()
+    ld.sync_with_sources()
 
     print(ld.to_json())
 

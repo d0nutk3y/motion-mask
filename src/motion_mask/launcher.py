@@ -1,15 +1,15 @@
-import dataclasses
 import sys
 
 import TermTk as ttk
 from TermTk import TTkColor
 
 from motion_mask import loggers
-from motion_mask.launch_settings import LaunchSettings, SettingName
+from motion_mask.launch_settings import LaunchSettings, SettingName, Choice
 
 logger = loggers.LoggerFactory.get_logger(name=__name__)
 
 MAX_LINES = 10
+DEFAULT_POS = (1, 1)
 
 
 class LayoutFactory:
@@ -26,7 +26,7 @@ class DefaultLayoutFactory(LayoutFactory):
             columnMinWidth=10,
             rowMinHeight=10,
             minWidth=5,
-            maxWidth=60,
+            maxWidth=70,
             maxHeight=20,
         )
 
@@ -35,7 +35,7 @@ class DefaultLayoutFactory(LayoutFactory):
             columnMinWidth=10,
             rowMinHeight=10,
             minWidth=5,
-            maxWidth=60,
+            maxWidth=70,
             maxHeight=20,
         )
 
@@ -181,7 +181,7 @@ class MenuItem(Stylable):
 
         self.value_label = ttk.TTkLabel(
             parent=self,
-            text="---",
+            text='',
             style=self.STYLE,
         )
         layout.addWidget(widget=self.value_label, row=0, col=2)
@@ -193,19 +193,26 @@ class MenuItem(Stylable):
     def _do_action(self):
         raise NotImplementedError()
 
-    def set_value_text(self, text: str):
+    def set_value_label_text(self, text: str):
         self.value_label.setText(text=text)
+
+    def update_label_text_from_selected(self):
+        raise NotImplementedError()
 
 
 class QuitMenuItem(MenuItem):
     def __init__(self, parent,
                  button_text: str = 'Quit',
+
                  **kwargs):
         super().__init__(parent, button_text, **kwargs)
 
     def _do_action(self):
         ttk.TTkHelper.quit()
         sys.exit(0)
+
+    def update_label_text_from_selected(self):
+        pass
 
 
 class LaunchMenuItem(MenuItem):
@@ -215,23 +222,23 @@ class LaunchMenuItem(MenuItem):
         super().__init__(parent, button_text, **kwargs)
 
     def _do_action(self):
+        self.save_settings()
         ttk.TTkHelper.quit()
 
+    def update_label_text_from_selected(self):
+        pass
 
-class ParamSelectionMenuItem(MenuItem):
-    def __init__(self, parent,
-                 button_text: str = 'button',
-                 action=None,
-                 **kwargs):
-        super().__init__(parent, button_text, **kwargs)
-        self.action = action
-
-    def _do_action(self):
-        self.action()
+    def save_settings(self):
+        pass
 
 
 class ListSelectWindow(Stylable):
-    def __init__(self, items, parent_to_swap: 'MainWindow', root, **kwargs):
+    def __init__(self,
+                 items: list[Choice],
+                 parent_to_swap: 'MainWindow',
+                 root,
+                 **kwargs):
+        self.callback = lambda: None
         self.items = items
         self.parent_to_swap = parent_to_swap
         self.root = root
@@ -247,7 +254,7 @@ class ListSelectWindow(Stylable):
         if max_height < MAX_LINES:
             self.setMaximumHeight(maxh=max_height)
 
-        self._selected_item = None
+        self._selected_item: ttk.TTkListItem | None = None
 
         self.list_view = ttk.TTkListWidget(parent=self,
                                            style=self.LIST_STYLE,
@@ -255,7 +262,9 @@ class ListSelectWindow(Stylable):
                                            )
 
         for item in self.items:
-            self.list_view.addItem(item)
+            self.list_view.addItem(
+                ttk.TTkListItem(
+                    text=item.label, data=item.value))
 
         self.list_view.textClicked.connect(self._on_item_selected)
 
@@ -266,51 +275,58 @@ class ListSelectWindow(Stylable):
 
     def show_back(self):
         self.hide()
+        self.callback()
         self.parent_to_swap.last_widget.setFocus()
         self.parent_to_swap.show()
 
     def _on_item_selected(self):
-        labels = self.list_view.selectedLabels()
-        if labels:
-            self._selected_item = labels[0]
+        items = self.list_view.selectedItems()
+
+        if items:
+            self._selected_item = items[0]
 
         self.show_back()
 
     @property
-    def selected_item(self):
+    def selected_item(self) -> ttk.TTkListItem:
         return self._selected_item
 
+    def set_callback(self, callback):
+        self.callback = callback
 
-@dataclasses.dataclass
-class Updatable:
-    list_window: ListSelectWindow
-    param_selection: ParamSelectionMenuItem
+
+class OptionSelectionMenuItem(MenuItem):
+    def __init__(self, parent,
+                 list_window: ListSelectWindow,
+                 option_name,
+                 button_text: str = 'button',
+                 **kwargs):
+        super().__init__(parent, button_text, **kwargs)
+        self.option_name = option_name
+        self.list_window = list_window
+
+    def _do_action(self):
+        self.list_window.set_callback(self.update_label_text_from_selected)
+        self.list_window.show_instead()
+
+    def update_label_text_from_selected(self):
+        item: ttk.TTkListItem = self.list_window.selected_item
+        new_label_value = item.text()
+
+        self.set_value_label_text(text=str(new_label_value))
+
+    def get_current_name_value_pair(self):
+        name = self.option_name
+
+        if not self.list_window.selected_item is None:
+            value = self.list_window.selected_item.data()
+        else:
+            value = None
+
+        return name, value
 
 
 class MainWindow(Stylable):
-    def create_updatable(self, name: SettingName):
-        option = self.launch_settings.get_option(name=name)
-
-        list_window: ListSelectWindow = ListSelectWindow(
-            items=option.available_choices,
-            parent_to_swap=self,
-            root=self.root,
-            pos=(2, 2),
-            size=(60, MAX_LINES),
-            maxWidth=60,
-            maxHeight=MAX_LINES,
-        )
-
-        param_selection = ParamSelectionMenuItem(
-            button_text=name,
-            parent=self,
-            action=lambda: list_window.show_instead())
-
-        return Updatable(
-            list_window=list_window,
-            param_selection=param_selection
-        )
-
     def __init__(self,
                  launch_settings: LaunchSettings,
                  parent,
@@ -322,46 +338,78 @@ class MainWindow(Stylable):
         self.grid = self.layout_factory.create()
         self.setLayout(self.grid)
 
-        self.mi_quit = QuitMenuItem(parent=self)
-        self.mi_launch = LaunchMenuItem(parent=self)
+        self.quit_mi = QuitMenuItem(parent=self)
+        self.launch_mi = LaunchMenuItem(parent=self)
 
-        self.last_widget = self.mi_launch
+        self.last_widget = self.launch_mi
 
-        self.updatable_list = [
-            self.create_updatable(name=SettingName.mode),
-            self.create_updatable(name=SettingName.camera),
-            self.create_updatable(name=SettingName.virtual_camera),
-            self.create_updatable(name=SettingName.avatar_name),
+        setting_names = [
+            SettingName.mode,
+            SettingName.camera,
+            SettingName.virtual_camera,
+            SettingName.avatar_name,
         ]
 
-        self.menu_items_with_lists = [x.param_selection
-                                      for x in self.updatable_list]
+        self.option_selection_mi_list = [self.create_option_selection_mi(name=n)
+                                         for n in setting_names]
 
-        padding = [self.create_blank_label(text="") for _ in range(10)]
+        padding_mi_list = [self.create_blank_label(text="") for _ in range(10)]
 
         self.menu_items = [
-            self.mi_quit,
-            *self.menu_items_with_lists,
-            self.mi_launch,
-            *padding,
+            self.quit_mi,
+            *self.option_selection_mi_list,
+            self.launch_mi,
+            *padding_mi_list,
         ]
 
         for i, menu_item in enumerate(self.menu_items):
             self.grid.addWidget(widget=menu_item, row=i, col=0)
 
-    def show(self) -> None:
-        super().show()
-        self.update_from_selections()
+    def create_option_selection_mi(self, name: SettingName):
+        option = self.launch_settings.get_option(name=name)
 
-    def update_from_selections(self):
-        for u in self.updatable_list:
-            t = u.list_window.selected_item
-            u.param_selection.set_value_text(text=t)
+        available_choices = option.available_choices.values()
+        current_choice = option.current_choice
+
+        if not available_choices:
+            available_choices = [Choice(value='', label='')]
+
+        list_window: ListSelectWindow = ListSelectWindow(
+            items=available_choices,
+            parent_to_swap=self,
+            root=self.root,
+            pos=DEFAULT_POS,
+            size=(70, MAX_LINES),
+            maxWidth=70,
+            maxHeight=MAX_LINES,
+        )
+
+        option_selection = OptionSelectionMenuItem(
+            list_window=list_window,
+            option_name=name,
+            button_text=name,
+            parent=self)
+
+        option_selection.set_value_label_text(text=current_choice.label)
+
+        return option_selection
+
+    def get_current_settings_from_ui(self):
+        settings = dict()
+        for psmi in self.option_selection_mi_list:
+
+            name, value = psmi.get_current_name_value_pair()
+
+            if value is not None:
+                settings[name] = value
+
+        return settings
 
 
 class Launcher:
     def __init__(self, launch_settings: LaunchSettings):
-        self.launch_settings = launch_settings
+        self._launch_settings = launch_settings
+        self.main_window: MainWindow | None = None
 
     def run(self):
         try:
@@ -372,16 +420,23 @@ class Launcher:
     def _run(self):
         root = ttk.TTk(title='')
 
-        main_window = MainWindow(
-            launch_settings=self.launch_settings,
+        self.main_window = MainWindow(
+            launch_settings=self._launch_settings,
             parent=root,
-            pos=(2, 2),
-            size=(60, MAX_LINES),
-            maxWidth=60,
+            pos=DEFAULT_POS,
+            size=(70, MAX_LINES),
+            maxWidth=70,
             maxHeight=MAX_LINES,
         )
 
         root.mainloop()
+
+    def get_updated_launch_settings(self) -> LaunchSettings:
+        settings_dict = self.main_window.get_current_settings_from_ui()
+
+        self._launch_settings.apply_settings(settings=settings_dict)
+
+        return self._launch_settings
 
 
 def main():
