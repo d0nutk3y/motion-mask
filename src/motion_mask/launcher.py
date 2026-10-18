@@ -218,20 +218,16 @@ class QuitMenuItem(MenuItem):
         pass
 
 
-class LaunchMenuItem(MenuItem):
+class SaveMenuItem(MenuItem):
     def __init__(self, parent,
-                 button_text: str = 'Launch',
+                 button_text: str = 'Save',
                  **kwargs):
         super().__init__(parent, button_text, **kwargs)
 
     def _do_action(self):
-        self.save_settings()
         ttk.TTkHelper.quit()
 
     def update_label_text_from_selected(self):
-        pass
-
-    def save_settings(self):
         pass
 
 
@@ -342,9 +338,9 @@ class MainWindow(Stylable):
         self.setLayout(self.grid)
 
         self.quit_mi = QuitMenuItem(parent=self)
-        self.launch_mi = LaunchMenuItem(parent=self)
+        self.save_mi = SaveMenuItem(parent=self)
 
-        self.last_widget = self.launch_mi
+        self.last_widget = self.save_mi
 
         setting_names = [
             SettingName.mode,
@@ -361,7 +357,7 @@ class MainWindow(Stylable):
         self.menu_items = [
             self.quit_mi,
             *self.option_selection_mi_list,
-            self.launch_mi,
+            self.save_mi,
             *padding_mi_list,
         ]
 
@@ -441,11 +437,3 @@ class Launcher:
 
         return self._launch_settings
 
-
-def main():
-    launcher = Launcher()
-    launcher.run()
-
-
-if __name__ == "__main__":
-    main()

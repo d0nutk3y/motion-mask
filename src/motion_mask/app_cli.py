@@ -1,4 +1,6 @@
 import argparse
+import enum
+from typing import Tuple
 
 from motion_mask import loggers
 from motion_mask.constants import AppMode, VirtualCamera
@@ -27,6 +29,11 @@ class CustomHelpFormatter(argparse.HelpFormatter):
         return ", ".join(parts)
 
 
+class CliMode(enum.StrEnum):
+    cli_setup = 'cli_setup'
+    cli_start = 'cli_start'
+
+
 class CliOptionsParser:
     @staticmethod
     def parse_args() -> argparse.Namespace:
@@ -35,6 +42,12 @@ class CliOptionsParser:
             formatter_class=CustomHelpFormatter)
 
         modes_as_str = [str(mode) for mode in AppMode]
+
+        parser.add_argument(
+            "--setup",
+            action="store_true",
+            help="launch tui setup",
+        )
 
         parser.add_argument(
             '--mode',
@@ -77,14 +90,16 @@ class CliOptionsParser:
 
         return args
 
-    def parse_settings(self) -> dict[SettingName, str]:
+    def parse_settings(self) -> Tuple[CliMode, dict[SettingName, str]]:
         args = self.parse_args()
 
+        setup_mode = args.setup
         mode = args.mode
         camera = args.camera
         virtual_camera = args.virtual_camera
         avatar_name = args.avatar_name
 
+        logger.debug(f'cli parsed: setup: {setup_mode}')
         logger.debug(f'cli parsed: mode: {mode}')
         logger.debug(f'cli parsed: camera: {camera}')
         logger.debug(f'cli parsed: virtual camera: {virtual_camera}')
@@ -97,4 +112,9 @@ class CliOptionsParser:
             SettingName.avatar_name: avatar_name,
         }
 
-        return parsed
+        if setup_mode:
+            cli_mode = CliMode.cli_setup
+        else:
+            cli_mode = CliMode.cli_start
+
+        return cli_mode, parsed

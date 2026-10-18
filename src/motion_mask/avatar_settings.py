@@ -2,7 +2,7 @@ import dataclasses
 import enum
 import json
 
-from motion_mask.common import (
+from motion_mask.avatar_constants import (
     BrowThresholdsNames,
     EyelidThresholdsNames,
     GazeThresholdsNames,

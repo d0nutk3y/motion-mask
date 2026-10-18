@@ -26,7 +26,7 @@ class AppException(Exception):
 
 class App:
     MONITORING_START_POLICY: dict[AppMode, bool] = {
-        AppMode.setup: False,
+        AppMode.calibration: False,
         AppMode.preview: True,
         AppMode.live: False
     }
@@ -113,7 +113,7 @@ class App:
                              width=self.cap_width,
                              height=self.cap_height)
 
-        if mode == AppMode.setup:
+        if mode == AppMode.calibration:
             from motion_mask.calibration_engine import CalibrationEngine
 
             engine = CalibrationEngine(
@@ -162,6 +162,7 @@ class App:
             self.memory_monitor.start()
 
     def launch(self):
+        # Load
         mode = self.launch_settings.get_current_choice_value(name=SettingName.mode)
         camera = self.launch_settings.get_current_choice_value(name=SettingName.camera)
         virtual_camera = self.launch_settings.get_current_choice_value(
@@ -188,6 +189,7 @@ class App:
         logger.debug(f'setting: model_path: {model_path}')
         logger.debug(f'setting: avatar_settings_path: {avatar_settings_path}')
 
+        # Create
         try:
             self.start_monitoring(mode=mode)
 
@@ -199,9 +201,14 @@ class App:
                 model_path=model_path,
                 settings_path=avatar_settings_path,
             )
+        except AvatarException as e:
+            logger.error(f'Avatar error: {e}')
+            sys.exit(1)
 
+        # Launch
+        try:
             engine.launch()
             sys.exit(0)
-        except AvatarException as e:
+        except AppException as e:
             logger.error(f'Avatar error: {e}')
             sys.exit(1)

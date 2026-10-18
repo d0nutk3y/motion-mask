@@ -10,19 +10,19 @@ from mediapipe.tasks.python.vision import FaceLandmarkerResult
 import motion_mask.frame_utils as fu
 from motion_mask import loggers
 from motion_mask.avatar_settings import ThresholdSettings
-from motion_mask.common import (BrowIndexMapping,
-                                BrowState,
-                                BrowThresholdsNames,
-                                EyelidIndexMapping,
-                                EyelidState,
-                                EyelidThresholdsNames,
-                                FaceParts,
-                                GazeIndexMapping,
-                                GazeState,
-                                GazeThresholdsNames,
-                                MouthIndexMapping,
-                                MouthState,
-                                MouthThresholdsNames)
+from motion_mask.avatar_constants import (BrowIndexMapping,
+                                          BrowState,
+                                          BrowThresholdsNames,
+                                          EyelidIndexMapping,
+                                          EyelidState,
+                                          EyelidThresholdsNames,
+                                          FaceParts,
+                                          GazeIndexMapping,
+                                          GazeState,
+                                          GazeThresholdsNames,
+                                          MouthIndexMapping,
+                                          MouthState,
+                                          MouthThresholdsNames)
 from motion_mask.shapes import (
     Shape,
     ShapeDefault,

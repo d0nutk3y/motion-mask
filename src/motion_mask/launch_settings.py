@@ -315,7 +315,9 @@ class LaunchSettings:
         return new_settings
 
 
-def create_launch_settings(settings_dict: dict[SettingName, str] = None) -> LaunchSettings:
+def create_launch_settings(
+        settings_dict: dict[SettingName, str] = None) -> LaunchSettings:
+
     if settings_dict is None:
         settings_dict = {
             SettingName.mode: AppMode.preview,

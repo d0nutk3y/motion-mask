@@ -6,7 +6,7 @@ from mediapipe.tasks.python.vision import FaceLandmarkerResult
 
 from motion_mask import loggers
 from motion_mask.avatar_settings import ThresholdSettings
-from motion_mask.common import (
+from motion_mask.avatar_constants import (
     BrowIndexMapping,
     BrowThresholdsNames,
     EyelidIndexMapping,

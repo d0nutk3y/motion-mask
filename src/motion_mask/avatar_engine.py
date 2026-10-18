@@ -97,9 +97,8 @@ class AvatarEngine(AvatarSettingsManager):
             self.graceful_shutdown()
 
     def _launch(self):
-        self.virtual_camera.start()
-
         self.capture_wrap.start()
+        self.virtual_camera.start()
 
         frame_drop_counter = 0
         while True:
