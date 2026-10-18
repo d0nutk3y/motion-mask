@@ -85,7 +85,7 @@ def go_calls_tests():
     model_path = './landmarkers/face_landmarker.task'
 
     with PyCallGraph(output=graphviz_output, config=config):
-        main.launch(mode=motion_mask.constants.AppMode.PREVIEW,
+        main.launch(mode=motion_mask.constants.AppMode.preview,
                     avatar_dir_path=avatar_dir_path,
                     model_path=model_path)
 

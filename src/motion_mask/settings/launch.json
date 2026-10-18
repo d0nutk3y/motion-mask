@@ -1,6 +1,6 @@
 {
-  "mode": "preview",
-  "camera": 1800,
-  "virtual camera": 1800,
+  "mode": "live",
+  "camera": 200,
+  "virtual camera": "v4l2loopback/video9",
   "avatar name": "kanisan"
 }

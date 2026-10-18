@@ -7,7 +7,8 @@ from pprint import pprint
 from cv2_enumerate_cameras import enumerate_cameras
 
 from motion_mask import loggers
-from motion_mask.constants import AppMode
+from motion_mask.constants import AppMode, CameraDevice, VirtualCameraDevice, VirtualCamera, \
+    VirtualCameraBackend
 
 logger = loggers.LoggerFactory.get_logger(name=__name__)
 
@@ -71,6 +72,27 @@ class CameraInfo:
             'path': self.path,
             'backend': self.backend
         }
+
+class VirtualCamerasInfoStorage:
+    def __init__(self):
+        self.mapping = {
+            VirtualCamera.v4l2loopback_video9:
+                (VirtualCameraBackend.v4l2loopback, VirtualCameraDevice.video9),
+            VirtualCamera.v4l2loopback_video8:
+                (VirtualCameraBackend.v4l2loopback, VirtualCameraDevice.video8),
+            VirtualCamera.v4l2loopback_video7:
+                (VirtualCameraBackend.v4l2loopback, VirtualCameraDevice.video7),
+            VirtualCamera.obs:
+                (VirtualCameraBackend.obs, VirtualCameraDevice.obs),
+            VirtualCamera.unitycapture:
+                (VirtualCameraBackend.unity_capture, VirtualCameraDevice.unity_capture),
+        }
+
+    def get_mapping(self):
+        return self.mapping.copy()
+
+    def get_backend_device_pair(self, setting: str):
+        return self.mapping[VirtualCamera(setting)]
 
 
 class CamerasInfoStorage:
@@ -145,6 +167,22 @@ class CameraChoicesSource(ChoicesSource):
 
         return [Choice(value=x.index, label=f'{x.index}: {x.name} {x.path}')
                 for x in camera_infos]
+
+
+
+class VirtualCameraChoicesSource(ChoicesSource):
+    def __init__(self):
+        vcis = VirtualCamerasInfoStorage()
+        self.mapping = vcis.get_mapping()
+
+        self.choices = [
+            Choice(label=f'{backend}: {device}', value=setting)
+            for setting, (backend, device)
+            in self.mapping.items()
+        ]
+
+    def get_choices(self) -> list[Choice]:
+        return self.choices
 
 
 class AvatarPathChoicesSource(ChoicesSource):
@@ -228,8 +266,8 @@ class LaunchSettings:
     def get_option(self, name: SettingName):
         return self._data.get(name)
 
-    def get_new_choice(self, name: SettingName):
-        return self._data.get(name).current_choice
+    def get_current_choice_value(self, name: SettingName):
+        return self._data.get(name).current_choice.value
 
     def sync_with_sources(self):
         for o in self._data.values():
@@ -276,9 +314,9 @@ class LaunchSettings:
 def create_launch_settings(settings_dict: dict[SettingName, str] = None) -> LaunchSettings:
     if settings_dict is None:
         settings_dict = {
-            SettingName.mode: 'preview',
-            SettingName.camera: '/dev/video0',
-            SettingName.virtual_camera: '/dev/video9',
+            SettingName.mode: AppMode.preview,
+            SettingName.camera: CameraDevice.video0,
+            SettingName.virtual_camera: VirtualCameraDevice.video9,
             SettingName.avatar_name: 'kanisan',
         }
 
@@ -305,7 +343,7 @@ def create_launch_settings(settings_dict: dict[SettingName, str] = None) -> Laun
 
     virtual_camera_option = create_option(
         name=SettingName.virtual_camera,
-        choices_source=CameraChoicesSource(camera_info_storage=cis)
+        choices_source=VirtualCameraChoicesSource()
     )
 
     avatar_path_option = create_option(

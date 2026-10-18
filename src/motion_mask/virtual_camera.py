@@ -42,12 +42,13 @@ class NoneVirtualCamera(VirtualCameraInterface):
 
 
 class DefaultVirtualCamera(threading.Thread, VirtualCameraInterface):
-    def __init__(self, device: str):
+    def __init__(self, backend: str,device: str):
         super().__init__()
 
         self._stop_event = threading.Event()
         self._error_event = threading.Event()
 
+        self.backend = backend
         self.device = device
 
         self.width = 1024
@@ -71,6 +72,7 @@ class DefaultVirtualCamera(threading.Thread, VirtualCameraInterface):
 
     def _run(self):
         with pyvirtualcam.Camera(
+                backend=self.backend,
                 device=self.device,
                 width=self.width,
                 height=self.height,

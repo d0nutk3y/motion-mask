@@ -11,8 +11,8 @@ logger = loggers.LoggerFactory.get_logger(name=__name__)
 class CaptureWrap(threading.Thread):
     def __init__(self, camera_index: int,
                  camera_backend: int,
-                 width: int = 640,
-                 height: int = 360,
+                 width: int = 1280,
+                 height: int = 720,
                  fps: int = 30):
 
         super().__init__()
