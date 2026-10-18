@@ -9,9 +9,9 @@ from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 
 from motion_mask import frame_utils as fu
-from motion_mask.calibration import logger, Calibrator
-from motion_mask.capture import CaptureWrap
 from motion_mask.avatar_settings_manager import AvatarSettingsManager
+from motion_mask.calibration import Calibrator, logger
+from motion_mask.capture import CaptureWrap
 
 
 class CalibrationEngine(AvatarSettingsManager):
@@ -22,10 +22,9 @@ class CalibrationEngine(AvatarSettingsManager):
     def __init__(self,
                  avatar_settings_path: Path,
                  model_path: Path,
-                 camera : CaptureWrap,
+                 camera: CaptureWrap,
                  ):
         super().__init__(avatar_settings_path=avatar_settings_path)
-
 
         self.results_count_default = 30
         model_path_as_str = str(model_path.absolute())
@@ -75,7 +74,6 @@ class CalibrationEngine(AvatarSettingsManager):
 
     def _launch(self):
         logger.info("Calibration mode")
-
 
         self.capture_wrap.start()
 
@@ -167,12 +165,12 @@ class CalibrationEngine(AvatarSettingsManager):
             h, w, _ = frame.shape
             landmarks_px = fu.get_landmarks_coordinates(face_landmarks, w, h)
 
-            # Визуализация ориентиров
             for i, (x, y, z) in enumerate(landmarks_px):
-                # Основные ориентиры лица (по аналогии со старым API)
                 cv2.circle(frame, (x, y), 1, self.default_points_color, -1)
 
             return frame
+
+        return None
 
     @staticmethod
     def split_lines(lines: list[str], max_length: int) -> list[str]:

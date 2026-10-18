@@ -117,7 +117,7 @@ def combine_frames(frame1, frame2, direction='vertical'):
 
 def combine_frames_old(left_frame, right_frame):
     """
-    Combine two results_count side-by-side horizontaly.
+    Combine two results_count side-by-side horizontally.
 
     Args:
         left_frame: first frame (H, W, 3)
@@ -164,7 +164,6 @@ def _ensure_4channels(img: np.ndarray) -> np.ndarray:
 
 
 def _match_sizes(bg: np.ndarray, fg: np.ndarray) -> tuple:
-    """Приводит изображения к одинаковому размеру (оптимизированно)"""
     h_bg, w_bg = bg.shape[:2]
     h_fg, w_fg = fg.shape[:2]
 

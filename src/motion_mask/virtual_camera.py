@@ -9,7 +9,7 @@ from motion_mask import loggers
 logger = loggers.LoggerFactory.get_logger(name=__name__)
 
 
-class VirtualCameraInterface():
+class VirtualCameraInterface:
     def set_frame(self, frame):
         raise NotImplementedError()
 
@@ -21,7 +21,6 @@ class VirtualCameraInterface():
 
     def has_errors(self):
         raise NotImplementedError()
-
 
 
 class NoneVirtualCamera(VirtualCameraInterface):
@@ -42,7 +41,7 @@ class NoneVirtualCamera(VirtualCameraInterface):
 
 
 class DefaultVirtualCamera(threading.Thread, VirtualCameraInterface):
-    def __init__(self, backend: str,device: str):
+    def __init__(self, backend: str, device: str):
         super().__init__()
 
         self._stop_event = threading.Event()

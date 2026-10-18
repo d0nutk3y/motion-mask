@@ -2,13 +2,17 @@ import dataclasses
 import enum
 import json
 import pathlib
-from pprint import pprint
 
 from cv2_enumerate_cameras import enumerate_cameras
 
 from motion_mask import loggers
-from motion_mask.constants import AppMode, CameraDevice, VirtualCameraDevice, VirtualCamera, \
-    VirtualCameraBackend
+from motion_mask.constants import (
+    AppMode,
+    CameraDevice,
+    VirtualCamera,
+    VirtualCameraBackend,
+    VirtualCameraDevice
+)
 
 logger = loggers.LoggerFactory.get_logger(name=__name__)
 
@@ -72,6 +76,7 @@ class CameraInfo:
             'path': self.path,
             'backend': self.backend
         }
+
 
 class VirtualCamerasInfoStorage:
     def __init__(self):
@@ -167,7 +172,6 @@ class CameraChoicesSource(ChoicesSource):
 
         return [Choice(value=x.index, label=f'{x.index}: {x.name} {x.path}')
                 for x in camera_infos]
-
 
 
 class VirtualCameraChoicesSource(ChoicesSource):
@@ -359,17 +363,3 @@ def create_launch_settings(settings_dict: dict[SettingName, str] = None) -> Laun
     ld.add_option(avatar_path_option)
 
     return ld
-
-
-def tests():
-    def ppprint(text):
-        pprint(text, sort_dicts=False, width=61)
-
-    ld = create_launch_settings()
-    ld.sync_with_sources()
-
-    print(ld.to_json())
-
-
-if __name__ == '__main__':
-    tests()

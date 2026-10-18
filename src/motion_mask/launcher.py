@@ -4,7 +4,10 @@ import TermTk as ttk
 from TermTk import TTkColor
 
 from motion_mask import loggers
-from motion_mask.launch_settings import LaunchSettings, SettingName, Choice
+from motion_mask.launch_settings import (
+    Choice,
+    LaunchSettings,
+    SettingName)
 
 logger = loggers.LoggerFactory.get_logger(name=__name__)
 

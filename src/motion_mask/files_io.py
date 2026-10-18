@@ -39,7 +39,7 @@ class FileStorage(Storage):
                 text = f.read()
             return text
 
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             logger.error(f"File not found: {self.filepath}")
             raise StorageException()
         except Exception as e:

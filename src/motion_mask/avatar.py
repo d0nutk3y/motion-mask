@@ -7,28 +7,31 @@ import numpy as np
 from mediapipe.tasks.python.components.containers import Category
 from mediapipe.tasks.python.vision import FaceLandmarkerResult
 
-from motion_mask.common import (
-    BrowState,
-    EyelidState,
-    GazeState,
-    MouthState, BrowThresholdsNames, EyelidThresholdsNames, GazeThresholdsNames,
-    MouthThresholdsNames, FaceParts,
-    BrowIndexMapping, EyelidIndexMapping, GazeIndexMapping, MouthIndexMapping)
-
 import motion_mask.frame_utils as fu
+from motion_mask import loggers
 from motion_mask.avatar_settings import ThresholdSettings
-
+from motion_mask.common import (BrowIndexMapping,
+                                BrowState,
+                                BrowThresholdsNames,
+                                EyelidIndexMapping,
+                                EyelidState,
+                                EyelidThresholdsNames,
+                                FaceParts,
+                                GazeIndexMapping,
+                                GazeState,
+                                GazeThresholdsNames,
+                                MouthIndexMapping,
+                                MouthState,
+                                MouthThresholdsNames)
 from motion_mask.shapes import (
     Shape,
     ShapeDefault,
 )
 
-from motion_mask import loggers
-
 logger = loggers.LoggerFactory.get_logger(name=__name__)
 
 
-class FileNames(enum.StrEnum):
+class FileName(enum.StrEnum):
     absent = 'absent'
     base = 'base'
 
@@ -169,9 +172,9 @@ class LeftBrow(Brow):
     name = FaceParts.brow_left
 
     state_to_file_mapping = {
-        BrowState.UP: FileNames.brow_left_up,
-        BrowState.NORMAL: FileNames.brow_left_normal,
-        BrowState.DOWN: FileNames.brow_left_normal,
+        BrowState.UP: FileName.brow_left_up,
+        BrowState.NORMAL: FileName.brow_left_normal,
+        BrowState.DOWN: FileName.brow_left_normal,
     }
 
     def _sync_fields(self):
@@ -184,9 +187,9 @@ class RightBrow(Brow):
     name = FaceParts.brow_right
 
     state_to_file_mapping = {
-        BrowState.UP: FileNames.brow_right_up,
-        BrowState.NORMAL: FileNames.brow_right_normal,
-        BrowState.DOWN: FileNames.brow_right_normal,
+        BrowState.UP: FileName.brow_right_up,
+        BrowState.NORMAL: FileName.brow_right_normal,
+        BrowState.DOWN: FileName.brow_right_normal,
     }
 
     def _sync_fields(self):
@@ -231,10 +234,10 @@ class LeftEyelid(Eyelid):
     name = FaceParts.eyelid_left
 
     state_to_file_mapping = {
-        EyelidState.CLOSED: FileNames.eyelid_left_closed,
-        EyelidState.SQUINT: FileNames.eyelid_left_squint,
-        EyelidState.OPENED_FULL: FileNames.eyelid_left_opened_full,
-        EyelidState.OPENED_NORMAL: FileNames.eyelid_left_opened_normal,
+        EyelidState.CLOSED: FileName.eyelid_left_closed,
+        EyelidState.SQUINT: FileName.eyelid_left_squint,
+        EyelidState.OPENED_FULL: FileName.eyelid_left_opened_full,
+        EyelidState.OPENED_NORMAL: FileName.eyelid_left_opened_normal,
     }
 
     def _sync_fields(self):
@@ -251,10 +254,10 @@ class RightEyelid(Eyelid):
     name = FaceParts.eyelid_right
 
     state_to_file_mapping = {
-        EyelidState.CLOSED: FileNames.eyelid_right_closed,
-        EyelidState.SQUINT: FileNames.eyelid_right_squint,
-        EyelidState.OPENED_FULL: FileNames.eyelid_right_opened_full,
-        EyelidState.OPENED_NORMAL: FileNames.eyelid_right_opened_normal,
+        EyelidState.CLOSED: FileName.eyelid_right_closed,
+        EyelidState.SQUINT: FileName.eyelid_right_squint,
+        EyelidState.OPENED_FULL: FileName.eyelid_right_opened_full,
+        EyelidState.OPENED_NORMAL: FileName.eyelid_right_opened_normal,
     }
 
     def _sync_fields(self):
@@ -316,15 +319,15 @@ class LeftGaze(Gaze):
     name = FaceParts.gaze_left
 
     state_to_file_mapping = {
-        GazeState.CENTER: FileNames.gaze_left_center,
-        GazeState.UP: FileNames.gaze_left_up,
-        GazeState.DOWN: FileNames.gaze_left_down,
-        GazeState.IN: FileNames.gaze_left_in,
-        GazeState.OUT: FileNames.gaze_left_out,
-        GazeState.UP_IN: FileNames.gaze_left_up_in,
-        GazeState.UP_OUT: FileNames.gaze_left_up_out,
-        GazeState.DOWN_IN: FileNames.gaze_left_down_in,
-        GazeState.DOWN_OUT: FileNames.gaze_left_down_out,
+        GazeState.CENTER: FileName.gaze_left_center,
+        GazeState.UP: FileName.gaze_left_up,
+        GazeState.DOWN: FileName.gaze_left_down,
+        GazeState.IN: FileName.gaze_left_in,
+        GazeState.OUT: FileName.gaze_left_out,
+        GazeState.UP_IN: FileName.gaze_left_up_in,
+        GazeState.UP_OUT: FileName.gaze_left_up_out,
+        GazeState.DOWN_IN: FileName.gaze_left_down_in,
+        GazeState.DOWN_OUT: FileName.gaze_left_down_out,
     }
 
     def _sync_fields(self):
@@ -342,15 +345,15 @@ class RightGaze(Gaze):
     name = FaceParts.gaze_right
 
     state_to_file_mapping = {
-        GazeState.CENTER: FileNames.gaze_right_center,
-        GazeState.UP: FileNames.gaze_right_up,
-        GazeState.DOWN: FileNames.gaze_right_down,
-        GazeState.IN: FileNames.gaze_right_in,
-        GazeState.OUT: FileNames.gaze_right_out,
-        GazeState.UP_IN: FileNames.gaze_right_up_in,
-        GazeState.UP_OUT: FileNames.gaze_right_up_out,
-        GazeState.DOWN_IN: FileNames.gaze_right_down_in,
-        GazeState.DOWN_OUT: FileNames.gaze_right_down_out,
+        GazeState.CENTER: FileName.gaze_right_center,
+        GazeState.UP: FileName.gaze_right_up,
+        GazeState.DOWN: FileName.gaze_right_down,
+        GazeState.IN: FileName.gaze_right_in,
+        GazeState.OUT: FileName.gaze_right_out,
+        GazeState.UP_IN: FileName.gaze_right_up_in,
+        GazeState.UP_OUT: FileName.gaze_right_up_out,
+        GazeState.DOWN_IN: FileName.gaze_right_down_in,
+        GazeState.DOWN_OUT: FileName.gaze_right_down_out,
     }
 
     def _sync_fields(self):
@@ -384,10 +387,10 @@ class Mouth(Part):
         self.pucker_threshold: Threshold | None = None
 
     state_to_file_mapping = {
-        MouthState.SMILE_OPENED: FileNames.mouth_smile_opened,
-        MouthState.SMILE_CLOSED: FileNames.mouth_smile_closed,
-        MouthState.NORMAL_OPENED: FileNames.mouth_normal_opened,
-        MouthState.NORMAL_CLOSED: FileNames.mouth_normal_closed,
+        MouthState.SMILE_OPENED: FileName.mouth_smile_opened,
+        MouthState.SMILE_CLOSED: FileName.mouth_smile_closed,
+        MouthState.NORMAL_OPENED: FileName.mouth_normal_opened,
+        MouthState.NORMAL_CLOSED: FileName.mouth_normal_closed,
     }
 
     def calculate_state(self):
@@ -484,13 +487,13 @@ class FaceStates:
 
     def get_all_filenames(self, states: dict[str, str]):
         filenames = {
-            Layers.base: FileNames.base,
+            Layers.base: FileName.base,
         }
 
         for layer_name in self.DYNAMIC_LAYERS_ORDER_PRIORITY:
             state = states[layer_name]
             file_name = self.parts_mapping[layer_name].get_file_name(state=state)
-            filenames[layer_name] = file_name
+            filenames[layer_name] = FileName(file_name)
 
         return filenames
 
@@ -591,7 +594,7 @@ class Avatar:
         self.width = 640
         self.height = 360
 
-        self.files_names = [name for name in FileNames]
+        self.files_names = [name for name in FileName]
 
         self.path_to_dir = path_to
         self._check_path_to_dir()
@@ -658,4 +661,4 @@ class Avatar:
         return avatar_frame
 
     def get_absent_frame(self):
-        return self.images[FileNames.absent]
+        return self.images[FileName.absent]

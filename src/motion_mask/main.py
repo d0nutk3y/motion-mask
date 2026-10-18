@@ -1,16 +1,13 @@
-import sys
-
+from motion_mask import loggers
 from motion_mask.app import App
 from motion_mask.app_cli import CliOptionsParser
 from motion_mask.constants import PathsToFiles
-from motion_mask.utility import create_path
-
-from motion_mask import loggers
-
 from motion_mask.files_io import FileStorage
-from motion_mask.launch_settings import (LaunchSettings,
-                                         create_launch_settings)
+from motion_mask.launch_settings import (
+    LaunchSettings,
+    create_launch_settings)
 from motion_mask.launcher import Launcher
+from motion_mask.utility import create_path
 
 logger = loggers.LoggerFactory.get_logger(name=__name__)
 

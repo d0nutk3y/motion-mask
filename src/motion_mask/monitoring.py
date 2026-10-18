@@ -1,6 +1,7 @@
 import os
 import threading
 import time
+
 import psutil
 
 from motion_mask import loggers
@@ -22,14 +23,14 @@ class MemoryMonitor(threading.Thread):
 
         self.process = psutil.Process(os.getpid())
 
-
-    def convert_to_MB(self, value: float) -> float:
+    @classmethod
+    def convert_to_mb(cls, value: float) -> float:
         return value / (1024 * 1024)
 
     def run(self):
         time.sleep(self.launch_delay)
         logger.debug(f'Monitoring started!')
-        self.base_rss_mb = self.convert_to_MB(self.process.memory_info().rss)
+        self.base_rss_mb = self.convert_to_mb(self.process.memory_info().rss)
 
         while True:
             self.idle()
@@ -51,8 +52,8 @@ class MemoryMonitor(threading.Thread):
 
     def measure(self):
         mem_info = self.process.memory_info()
-        rss_mb = self.convert_to_MB(mem_info.rss)
-        vms_mb = self.convert_to_MB(mem_info.vms)
+        rss_mb = self.convert_to_mb(mem_info.rss)
+        vms_mb = self.convert_to_mb(mem_info.vms)
         mem_percent = self.process.memory_percent()
 
         message = (f'RSS: {rss_mb:.2f} MB | '

@@ -3,10 +3,10 @@ import enum
 import json
 
 from motion_mask.common import (
-    MouthThresholdsNames,
-    GazeThresholdsNames,
+    BrowThresholdsNames,
     EyelidThresholdsNames,
-    BrowThresholdsNames)
+    GazeThresholdsNames,
+    MouthThresholdsNames)
 
 
 @dataclasses.dataclass

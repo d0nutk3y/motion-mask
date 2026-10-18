@@ -3,16 +3,20 @@ from pathlib import Path
 
 import cv2
 
+from motion_mask import loggers
 from motion_mask import monitoring
 from motion_mask.avatar import AvatarException
 from motion_mask.capture import CaptureWrap
 from motion_mask.constants import AppMode, PathsToFiles
-from motion_mask.launch_settings import LaunchSettings, CameraInfo, CamerasInfoStorage, \
-    SettingName, VirtualCamerasInfoStorage
+from motion_mask.launch_settings import (
+    CameraInfo,
+    CamerasInfoStorage,
+    LaunchSettings,
+    SettingName,
+    VirtualCamerasInfoStorage)
 from motion_mask.utility import create_path
-from motion_mask.virtual_camera import NoneVirtualCamera, DefaultVirtualCamera
+from motion_mask.virtual_camera import DefaultVirtualCamera, NoneVirtualCamera
 
-from motion_mask import loggers
 logger = loggers.LoggerFactory.get_logger(name=__name__)
 
 
@@ -28,8 +32,6 @@ class App:
     }
 
     def __init__(self, launch_settings: LaunchSettings):
-        cv2.utils.logging.setLogLevel(cv2.utils.logging.LOG_LEVEL_SILENT)
-
         self.launch_settings = launch_settings
 
         self.memory_monitor = monitoring.MemoryMonitor(
@@ -40,7 +42,8 @@ class App:
         self.cap_width = 640
         self.cap_height = 360
 
-    def is_camera_working(self,
+    @classmethod
+    def is_camera_working(cls,
                           camera_info: CameraInfo,
                           max_attempts: int = 3) -> bool:
 
@@ -138,7 +141,7 @@ class App:
             vcis = VirtualCamerasInfoStorage()
             backend, device = vcis.get_backend_device_pair(setting=virtual_camera_ref)
             virtual_camera = DefaultVirtualCamera(
-                backend = backend,
+                backend=backend,
                 device=device)
 
             engine = AvatarEngine(
@@ -161,7 +164,8 @@ class App:
     def launch(self):
         mode = self.launch_settings.get_current_choice_value(name=SettingName.mode)
         camera = self.launch_settings.get_current_choice_value(name=SettingName.camera)
-        virtual_camera = self.launch_settings.get_current_choice_value(name=SettingName.virtual_camera)
+        virtual_camera = self.launch_settings.get_current_choice_value(
+            name=SettingName.virtual_camera)
         avatar_name = self.launch_settings.get_current_choice_value(name=SettingName.avatar_name)
 
         avatar_path = create_path(

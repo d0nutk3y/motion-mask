@@ -9,11 +9,13 @@ from mediapipe.tasks.python import vision
 
 from motion_mask import frame_utils as fu
 from motion_mask import loggers
-
-from motion_mask.avatar import FaceStates, Avatar, DefaultStatesTransformer
-from motion_mask.capture import CaptureWrap
+from motion_mask.avatar import (
+    Avatar,
+    DefaultStatesTransformer,
+    FaceStates)
 from motion_mask.avatar_settings import CommonSettings
 from motion_mask.avatar_settings_manager import AvatarSettingsManager
+from motion_mask.capture import CaptureWrap
 
 logger = loggers.LoggerFactory.get_logger(name=__name__)
 
@@ -28,7 +30,7 @@ class AvatarEngine(AvatarSettingsManager):
                  model_path: Path,
                  avatar_path: Path,
                  preview_mode: bool = True,
-                 camera : CaptureWrap=None,
+                 camera: CaptureWrap = None,
                  virtual_camera=None):
 
         super().__init__(avatar_settings_path=avatar_settings_path)
@@ -54,15 +56,12 @@ class AvatarEngine(AvatarSettingsManager):
 
         self.win_name = 'Capture'
 
-
         self.frame_width = 640
         self.frame_height = 360
         self.info_frame_back = np.full(
             (self.frame_height, self.frame_width, 4),
             self.default_fill_value,
             dtype=np.uint8)
-
-
 
         base_options = python.BaseOptions(model_asset_path=model_path_as_str)
 
@@ -77,7 +76,6 @@ class AvatarEngine(AvatarSettingsManager):
         )
 
         self.face_landmarker = vision.FaceLandmarker.create_from_options(options)
-
 
         self.apply_settings()
         logger.info("Settings applied")
@@ -97,7 +95,6 @@ class AvatarEngine(AvatarSettingsManager):
             logger.error(f'Something goes wrong: {e}')
         finally:
             self.graceful_shutdown()
-
 
     def _launch(self):
         self.virtual_camera.start()
@@ -189,7 +186,6 @@ class AvatarEngine(AvatarSettingsManager):
                 )
 
                 cv2.imshow(winname=self.win_name, mat=combined_frame)
-
 
     def graceful_shutdown(self):
         logger.info(f'Graceful shutdown')
