@@ -83,7 +83,7 @@ class CliOptionsParser:
             type=str,
             required=False,
             metavar='AVATAR_NAME',
-            help=f'name of avatar dir in ./avatars',
+            help=f'name of avatar: kanisan',
         )
 
         args = parser.parse_args()

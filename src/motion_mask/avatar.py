@@ -584,15 +584,14 @@ class AvatarCache:
 
 class Avatar:
     def __init__(self, path_to: Path):
-
         # possible resolutions (affects performance)
         # 256 x 144
         # 384 x 216
         # 512 x 288
         # 640 x 360
 
-        self.width = 640
-        self.height = 360
+        self.width = 512
+        self.height = 288
 
         self.files_names = [name for name in FileName]
 

@@ -45,3 +45,6 @@ class FileStorage(Storage):
         except Exception as e:
             logger.error(f"Load error: {type(e)}: {e}")
             raise StorageException()
+
+    def exists(self):
+        return self.filepath.exists()

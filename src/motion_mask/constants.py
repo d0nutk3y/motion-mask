@@ -11,6 +11,7 @@ class PathsToFiles(enum.StrEnum):
     launch_settings = 'settings/launch.json'
     model = 'landmarkers/face_landmarker.task'
     avatar_settings = 'settings/avatar.json'
+    avatars_dir= 'avatars'
 
 
 class VirtualCamera(enum.StrEnum):

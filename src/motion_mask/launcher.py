@@ -6,7 +6,7 @@ from TermTk import TTkColor
 from motion_mask import loggers
 from motion_mask.launch_settings import (
     Choice,
-    LaunchSettings,
+    DictSettingsSource, LaunchSettings,
     SettingName)
 
 logger = loggers.LoggerFactory.get_logger(name=__name__)
@@ -433,7 +433,8 @@ class Launcher:
     def get_updated_launch_settings(self) -> LaunchSettings:
         settings_dict = self.main_window.get_current_settings_from_ui()
 
-        self._launch_settings.apply_settings(settings=settings_dict)
+        self._launch_settings.sync_with_settings_source(
+            settings_source=DictSettingsSource(settings_dict=settings_dict)
+        )
 
         return self._launch_settings
-
