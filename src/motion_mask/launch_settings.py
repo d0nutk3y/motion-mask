@@ -63,7 +63,7 @@ class Option:
 
     @property
     def available_choices(self):
-        return self._available_choices
+        return list(self._available_choices.values())
 
     @property
     def current_choice(self):

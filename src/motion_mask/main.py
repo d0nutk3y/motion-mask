@@ -28,7 +28,7 @@ from motion_mask.launch_settings import (
     DictSettingsSource,
     LaunchSettings,
     Option, SettingName)
-from motion_mask.launcher import Launcher
+from motion_mask.tui import LaunchResult, Tui
 from motion_mask.utility import create_path
 from motion_mask.virtual_camera import (
     DefaultVirtualCamera,
@@ -313,17 +313,21 @@ class Runner:
     def _run_setup(self, launch_settings: LaunchSettings):
         logger.debug('starting setup...')
 
-        launcher = Launcher(launch_settings=launch_settings)
-        launcher.run()
+        launcher = Tui(launch_settings=launch_settings)
+        launch_result = launcher.launch()
+        logger.debug(f'tui exit status: {launch_result}')
 
-        settings_after_launcher = launcher.get_updated_launch_settings()
+        if launch_result == LaunchResult.save:
+            settings_after_launcher = launcher.get_updated_launch_settings()
 
-        json_text = json.dumps(
-            settings_after_launcher.to_dict(),
-            indent=2,
-        )
+            json_text = json.dumps(
+                settings_after_launcher.to_dict(),
+                indent=2,
+            )
 
-        self.launch_settings_storage.save(text=json_text)
+            self.launch_settings_storage.save(text=json_text)
+
+        sys.exit(0)
 
 
 class ModeChoicesSource(ChoicesSource):
