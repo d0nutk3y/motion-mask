@@ -84,11 +84,22 @@ class LaunchSettings:
 
         self._data[option.name] = option
 
-    def get_option(self, name: SettingName):
-        return self._data.get(name)
+    def get_available_choices(self, name: SettingName) -> list[tuple[str, str]]:
+        option = self._data.get(name)
 
-    def get_current_choice_value(self, name: SettingName):
-        return self._data.get(name).current_choice.value
+        items = [(x.value, x.label) for x
+                 in option.available_choices]
+
+        return items
+
+    def get_current_choice(self, name: SettingName) -> tuple[str, str]:
+        c = self._data.get(name).current_choice
+
+        return c.value, c.label
+
+    def set_current_choice(self, name: SettingName, new_value: str):
+        c = self._data.get(name).current_choice
+        c.value = new_value
 
     def sync_with_settings_source(self, settings_source: SettingsSource = None):
         options = self._data.values()
@@ -100,6 +111,6 @@ class LaunchSettings:
                 message = f'option:{o.name} e:{e}'
                 raise RuntimeError(f'Can not update option: {message}')
 
-    def to_dict(self) -> dict[SettingName, str]:
-        return {name: option.current_choice.value
+    def to_dict(self) -> dict[str, str]:
+        return {str(name): option.current_choice.value
                 for name, option in self._data.items()}

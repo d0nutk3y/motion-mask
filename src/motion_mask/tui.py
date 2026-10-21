@@ -29,7 +29,6 @@ from prompt_toolkit.widgets import Frame
 
 from motion_mask import loggers
 from motion_mask.launch_settings import (
-    DictSettingsSource,
     LaunchSettings, SettingName)
 
 logger = loggers.LoggerFactory.get_logger(name=__name__)
@@ -94,7 +93,7 @@ class ButtonWithText:
 class ListSelection:
     def __init__(self, name: str, items: list[tuple[str, str]] | None = None):
         self.name = name
-        self.max_width = 50
+        self.max_width = 64
         self.items = items or [("no value", "no value")]
         self.selected_item: str | None = None
         self.future: asyncio.Future | None = None
@@ -148,7 +147,7 @@ class ListSelection:
 
 
 class Tui:
-    max_width: int = 60
+    max_width: int = 64
 
     def __init__(self, launch_settings: LaunchSettings):
         self._launch_settings = launch_settings
@@ -163,7 +162,7 @@ class Tui:
         self.menu_items: list[ButtonWithText] | None = None
         self._build_tui()
 
-        self._apply_settings()
+        self._reflect_settings_to_ui()
 
     def _init_bindings(self):
         bindings = KeyBindings()
@@ -178,8 +177,41 @@ class Tui:
     def _init_style(self):
         self.style = None
 
+    def create_main_menu_items(self) -> list[Button]:
+
+        names = [
+            SettingName.mode,
+            SettingName.camera,
+            SettingName.virtual_camera,
+            SettingName.avatar_name,
+        ]
+
+        button_width = 4 + max([len(str(n)) for n in names])
+
+        selection_buttons = [self.create_button_with_text(name=name, button_width=button_width)
+                             for name in names]
+
+        self.menu_items = selection_buttons
+
+        buttons_with_text = [
+            ButtonWithText(name='Quit',
+                           initial_text='',
+                           handler=lambda: self.quit(),
+                           button_width=button_width),
+
+            *selection_buttons,
+
+            ButtonWithText(name='Save',
+                           initial_text='',
+                           handler=lambda: self.save(),
+                           button_width=button_width),
+        ]
+
+        return buttons_with_text
+
     def _build_tui(self):
         main_menu_items = self.create_main_menu_items()
+
         content_container = HSplit(main_menu_items)
 
         inner_layout = Frame(
@@ -218,15 +250,6 @@ class Tui:
             )
         )
 
-    def _apply_settings(self):
-        settings_dict = self._launch_settings.to_dict()
-
-        for mi in self.menu_items:
-            value = settings_dict.get(SettingName(mi.name))
-
-            if value:
-                mi.set_text(new_text=value)
-
     def show_list_selection(self,
                             list_selection: ListSelection,
                             button_with_text: ButtonWithText):
@@ -252,7 +275,15 @@ class Tui:
                 app.layout.focus(focused_before)
 
             if result is not None:
-                button_with_text.set_text(str(result))
+                r = str(result)
+                n = SettingName(button_with_text.name)
+
+                button_with_text.set_text(new_text=r)
+                self._launch_settings.set_current_choice(
+                    name=n,
+                    new_value=r
+                )
+
             return result
 
         return asyncio.create_task(wait_and_cleanup())
@@ -263,80 +294,37 @@ class Tui:
         except Exception as e:
             logger.error(f'Something goes wrong with tui: {e}')
 
-    def get_updated_launch_settings(self) -> LaunchSettings:
-        settings_dict = self.get_current_settings_from_ui()
-
-        self._launch_settings.sync_with_settings_source(
-            settings_source=DictSettingsSource(settings_dict=settings_dict)
-        )
-
-        return self._launch_settings
-
     def quit(self):
-        self.quit_routine()
         self.app.exit(result=LaunchResult.exit)
 
     def save(self):
-        self.save_routine()
         self.app.exit(result=LaunchResult.save)
 
-    def save_routine(self):
-        pass
+    def _reflect_settings_to_ui(self):
+        settings_dict = self._launch_settings.to_dict()
 
-    def quit_routine(self):
-        pass
+        for mi in self.menu_items:
+            value = settings_dict.get(SettingName(mi.name))
 
-    def get_current_settings_from_ui(self):
-        raise Exception('todo')
+            if value:
+                mi.set_text(new_text=value)
 
     def create_button_with_text(self, name: str, button_width: int):
-        option = self._launch_settings.get_option(
-            name=SettingName(name))
-
-        items = [(x.value, x.label) for x
-                 in option.available_choices]
-
         bwt = ButtonWithText(name=name,
                              initial_text='-',
                              button_width=button_width)
+
+        choices = self._launch_settings.get_available_choices(
+            name=SettingName(name))
 
         bwt.set_handler(
             handler=lambda: self.show_list_selection(
                 ListSelection(
                     name=name,
-                    items=items),
+                    items=choices),
                 button_with_text=bwt))
 
         return bwt
 
-    def create_main_menu_items(self) -> list[Button]:
-
-        names = [
-            SettingName.mode,
-            SettingName.camera,
-            SettingName.virtual_camera,
-            SettingName.avatar_name,
-        ]
-
-        button_width = 4 + max([len(str(n)) for n in names])
-
-        selection_buttons = [self.create_button_with_text(name=name, button_width=button_width)
-                             for name in names]
-
-        self.menu_items = selection_buttons
-
-        buttons_with_text = [
-            ButtonWithText(name='Quit',
-                           initial_text='',
-                           handler=lambda: self.quit(),
-                           button_width=button_width),
-
-            *selection_buttons,
-
-            ButtonWithText(name='Save',
-                           initial_text='',
-                           handler=lambda: self.save(),
-                           button_width=button_width),
-        ]
-
-        return buttons_with_text
+    def get_updated_launch_settings(self) -> LaunchSettings:
+        return self._launch_settings

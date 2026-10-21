@@ -197,11 +197,14 @@ class App:
 
     def launch(self):
         # Load
-        mode = self.launch_settings.get_current_choice_value(name=SettingName.mode)
-        camera = self.launch_settings.get_current_choice_value(name=SettingName.camera)
-        virtual_camera = self.launch_settings.get_current_choice_value(
-            name=SettingName.virtual_camera)
-        avatar_name = self.launch_settings.get_current_choice_value(name=SettingName.avatar_name)
+        getter = self.launch_settings.get_current_choice
+
+        mode, _ = getter(name=SettingName.mode)
+        mode = AppMode(mode)
+
+        camera, _ = getter(name=SettingName.camera)
+        virtual_camera, _ = getter(name=SettingName.virtual_camera)
+        avatar_name, _ = getter(name=SettingName.avatar_name)
 
         avatar_path = self.paths.avatars_dir_path.joinpath(avatar_name)
         model_path = self.paths.model_path
@@ -313,12 +316,18 @@ class Runner:
     def _run_setup(self, launch_settings: LaunchSettings):
         logger.debug('starting setup...')
 
+        logger.debug(f'before: {launch_settings.to_dict()}')
+
+
         launcher = Tui(launch_settings=launch_settings)
         launch_result = launcher.launch()
         logger.debug(f'tui exit status: {launch_result}')
 
+
         if launch_result == LaunchResult.save:
             settings_after_launcher = launcher.get_updated_launch_settings()
+
+            logger.debug(f'after: {settings_after_launcher.to_dict()}')
 
             json_text = json.dumps(
                 settings_after_launcher.to_dict(),

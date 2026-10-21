@@ -138,7 +138,7 @@ class AvatarEngine(AvatarSettingsManager):
             if not detection_result.face_landmarks:
                 logger.debug('No face detected!')
                 self.virtual_camera.set_frame(frame=self.absent_frame)
-                time.sleep(0.25)
+                time.sleep(0.5)
                 continue
 
             self.face_states.update(detection_result=detection_result)
