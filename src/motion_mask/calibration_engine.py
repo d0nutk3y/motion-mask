@@ -12,9 +12,11 @@ from motion_mask import frame_utils as fu
 from motion_mask.avatar_settings_manager import AvatarSettingsManager
 from motion_mask.calibration import Calibrator, logger
 from motion_mask.capture import CaptureWrap
+from motion_mask.engines import Engine
+from motion_mask.utility import suppress_native_stderr
 
 
-class CalibrationEngine(AvatarSettingsManager):
+class CalibrationEngine(AvatarSettingsManager, Engine):
     default_front_color = (239, 239, 239)
     default_points_color = (127, 127, 127)
     default_fill_value = 16
@@ -26,8 +28,8 @@ class CalibrationEngine(AvatarSettingsManager):
                  ):
         super().__init__(avatar_settings_path=avatar_settings_path)
 
+        self.stop_callback = lambda: False
         self.results_count_default = 30
-        model_path_as_str = str(model_path.absolute())
 
         self.win_name = 'Capture'
         self.capture_wrap = camera
@@ -42,7 +44,15 @@ class CalibrationEngine(AvatarSettingsManager):
             self.default_fill_value,
             dtype=np.uint8)
 
-        base_options = python.BaseOptions(model_asset_path=model_path_as_str)
+        self.model_path_as_str = str(model_path.absolute())
+        self._init_mediapipe()
+
+        self.capture_number = 0
+
+    def _init_mediapipe(self):
+        restore = suppress_native_stderr()
+
+        base_options = python.BaseOptions(model_asset_path=self.model_path_as_str)
 
         options = vision.FaceLandmarkerOptions(
             base_options=base_options,
@@ -56,7 +66,7 @@ class CalibrationEngine(AvatarSettingsManager):
 
         self.face_landmarker = vision.FaceLandmarker.create_from_options(options)
 
-        self.capture_number = 0
+        restore()
 
     def set_thresholds_mapping(self, mapping):
         self.update_thresholds_mapping(mapping=mapping)
@@ -72,6 +82,9 @@ class CalibrationEngine(AvatarSettingsManager):
         finally:
             self.graceful_shutdown()
 
+    def set_stop_callback(self, stop_callback):
+        self.stop_callback = stop_callback
+
     def _launch(self):
         logger.info("Calibration mode")
 
@@ -80,6 +93,9 @@ class CalibrationEngine(AvatarSettingsManager):
         calibrator = Calibrator(settings_setter=lambda x: self.set_thresholds_mapping(x))
 
         while True:
+            if self.stop_callback():
+                break
+
             if self.capture_wrap.has_errors():
                 logger.error('Camera error')
                 break
@@ -148,7 +164,9 @@ class CalibrationEngine(AvatarSettingsManager):
                 direction='horizontal'
             )
 
+            restore_stderr = suppress_native_stderr()
             cv2.imshow(winname=self.win_name, mat=combined_frame)
+            restore_stderr()
 
     def graceful_shutdown(self):
         logger.info(f'Graceful shutdown')

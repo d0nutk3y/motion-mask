@@ -1,12 +1,13 @@
 import json
+import logging.config
 import pathlib
 import sys
+import threading
 from pathlib import Path
 
 import cv2
 
 from motion_mask import loggers
-from motion_mask import monitoring
 from motion_mask.app_cli import (
     CliMode,
     CliOptionsParser)
@@ -21,6 +22,7 @@ from motion_mask.constants import (
     CameraDevice,
     PathsToFiles,
     VirtualCameraDevice)
+from motion_mask.engines import Engine
 from motion_mask.files_io import FileStorage
 from motion_mask.launch_settings import (
     Choice,
@@ -28,11 +30,14 @@ from motion_mask.launch_settings import (
     DictSettingsSource,
     LaunchSettings,
     Option, SettingName)
-from motion_mask.tui import LaunchResult, Tui
+from motion_mask.tui_app_wrap import tui_app_wrap
+from motion_mask.tui_setup import LaunchResult, Tui
 from motion_mask.utility import create_path
 from motion_mask.virtual_camera import (
     DefaultVirtualCamera,
     NoneVirtualCamera)
+
+logging.config.dictConfig(loggers.LoggerFactory.LOGGING_CONFIG)
 
 logger = loggers.LoggerFactory.get_logger(name=__name__)
 
@@ -56,24 +61,31 @@ class AppPaths:
         )
 
 
-class App:
-    MONITORING_START_POLICY: dict[AppMode, bool] = {
-        AppMode.calibration: False,
-        AppMode.preview: True,
-        AppMode.live: False
-    }
-
+class App(threading.Thread):
     def __init__(self, launch_settings: LaunchSettings, app_paths: AppPaths):
+        super().__init__()
         self.launch_settings = launch_settings
         self.paths: AppPaths = app_paths
 
-        self.memory_monitor = monitoring.MemoryMonitor(
-            idle_seconds=3.0,
-            launch_delay=15.0
-        )
-
         self.cap_width = 640
         self.cap_height = 360
+
+        self.engine: Engine | None = None
+        self._stop_event = threading.Event()
+
+    @property
+    def stop_event(self):
+        return self._stop_event
+
+    def run(self):
+        self.launch_engine()
+        self._stop_event.set()
+
+    def stop(self):
+        self._stop_event.set()
+
+    def stop_callback(self):
+        return self._stop_event.is_set()
 
     @classmethod
     def is_camera_working(cls,
@@ -189,13 +201,7 @@ class App:
 
         return engine
 
-    def start_monitoring(self, mode: AppMode):
-        start_allowed = self.MONITORING_START_POLICY[mode]
-
-        if start_allowed:
-            self.memory_monitor.start()
-
-    def launch(self):
+    def launch_engine(self):
         # Load
         getter = self.launch_settings.get_current_choice
 
@@ -220,9 +226,7 @@ class App:
 
         # Create
         try:
-            self.start_monitoring(mode=mode)
-
-            engine = self.create_engine(
+            self.engine = self.create_engine(
                 mode=mode,
                 camera_ref=camera,
                 virtual_camera_ref=virtual_camera,
@@ -230,14 +234,20 @@ class App:
                 model_path=model_path,
                 settings_path=avatar_settings_path,
             )
+            self.engine.set_stop_callback(stop_callback=self.stop_callback)
+
         except AvatarException as e:
             logger.error(f'Avatar error: {e}')
             sys.exit(1)
 
+        except AppException as e:
+            logger.error(f'App error: {e}')
+            sys.exit(1)
+
         # Launch
         try:
-            engine.launch()
-            sys.exit(0)
+            self.engine.launch()
+            return
         except AppException as e:
             logger.error(f'Avatar error: {e}')
             sys.exit(1)
@@ -311,18 +321,17 @@ class Runner:
 
         app = App(launch_settings=launch_settings,
                   app_paths=self.paths)
-        app.launch()
+
+        tui_app_wrap(thread=app, exit_request_event=app.stop_event)
 
     def _run_setup(self, launch_settings: LaunchSettings):
         logger.debug('starting setup...')
 
         logger.debug(f'before: {launch_settings.to_dict()}')
 
-
         launcher = Tui(launch_settings=launch_settings)
         launch_result = launcher.launch()
         logger.debug(f'tui exit status: {launch_result}')
-
 
         if launch_result == LaunchResult.save:
             settings_after_launcher = launcher.get_launch_settings()

@@ -13,3 +13,20 @@ def create_path(path_as_str: str) -> Path:
 
     path = base.joinpath(path_as_str)
     return path
+
+
+import os, sys
+
+
+def suppress_native_stderr():
+    """Workaround for disabling C++ mediapipe logs flood to stderr"""
+    old_fd = os.dup(2)
+    devnull_fd = os.open(os.devnull, os.O_WRONLY)
+    os.dup2(devnull_fd, 2)
+
+    def restore():
+        os.dup2(old_fd, 2)
+        os.close(devnull_fd)
+        os.close(old_fd)
+
+    return restore

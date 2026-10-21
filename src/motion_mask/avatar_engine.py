@@ -16,11 +16,13 @@ from motion_mask.avatar import (
 from motion_mask.avatar_settings import CommonSettings
 from motion_mask.avatar_settings_manager import AvatarSettingsManager
 from motion_mask.capture import CaptureWrap
+from motion_mask.engines import Engine
+from motion_mask.utility import suppress_native_stderr
 
 logger = loggers.LoggerFactory.get_logger(name=__name__)
 
 
-class AvatarEngine(AvatarSettingsManager):
+class AvatarEngine(AvatarSettingsManager, Engine):
     default_front_color = (0, 239, 0)
     default_points_color = (0, 127, 0)
     default_fill_value = 16
@@ -35,6 +37,7 @@ class AvatarEngine(AvatarSettingsManager):
 
         super().__init__(avatar_settings_path=avatar_settings_path)
 
+        self.stop_callback = lambda: False
         self.capture_wrap = camera
         self.cap_width = camera.width
         self.cap_height = camera.height
@@ -47,10 +50,9 @@ class AvatarEngine(AvatarSettingsManager):
 
         self.absent_frame = self.avatar.get_absent_frame()
 
-        self.testing_mode = preview_mode
+        self.preview_mode = preview_mode
 
         self.frames_to_drop = 0
-        model_path_as_str = str(model_path.absolute())
 
         self.virtual_camera = virtual_camera
 
@@ -63,7 +65,16 @@ class AvatarEngine(AvatarSettingsManager):
             self.default_fill_value,
             dtype=np.uint8)
 
-        base_options = python.BaseOptions(model_asset_path=model_path_as_str)
+        self.model_path_as_str = str(model_path.absolute())
+        self._init_mediapipe()
+
+        self.apply_settings()
+        logger.info("Settings applied")
+
+    def _init_mediapipe(self):
+        restore = suppress_native_stderr()
+
+        base_options = python.BaseOptions(model_asset_path=self.model_path_as_str)
 
         options = vision.FaceLandmarkerOptions(
             base_options=base_options,
@@ -77,8 +88,7 @@ class AvatarEngine(AvatarSettingsManager):
 
         self.face_landmarker = vision.FaceLandmarker.create_from_options(options)
 
-        self.apply_settings()
-        logger.info("Settings applied")
+        restore()
 
     def apply_settings(self):
         self.frames_to_drop = self.settings.get(setting=CommonSettings.frames_to_drop)
@@ -96,12 +106,18 @@ class AvatarEngine(AvatarSettingsManager):
         finally:
             self.graceful_shutdown()
 
+    def set_stop_callback(self, stop_callback):
+        self.stop_callback = stop_callback
+
     def _launch(self):
         self.capture_wrap.start()
         self.virtual_camera.start()
 
         frame_drop_counter = 0
         while True:
+            if self.stop_callback():
+                break
+
             if self.capture_wrap.has_errors():
                 logger.error('Camera error')
                 break
@@ -110,7 +126,7 @@ class AvatarEngine(AvatarSettingsManager):
                 logger.error('Virtual camera error')
                 break
 
-            if self.testing_mode:
+            if self.preview_mode:
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     logger.info('Exiting by hotkey from cv interface')
                     break
@@ -155,7 +171,7 @@ class AvatarEngine(AvatarSettingsManager):
 
             self.virtual_camera.set_frame(frame=avatar_frame)
 
-            if self.testing_mode:
+            if self.preview_mode:
                 current_states = self.face_states.get_all_states()
                 current_states = [f'{k}: {v}' for k, v in current_states.items()]
 
@@ -183,8 +199,9 @@ class AvatarEngine(AvatarSettingsManager):
                     frame2=second_frame,
                     direction='horizontal'
                 )
-
+                restore_stderr = suppress_native_stderr()
                 cv2.imshow(winname=self.win_name, mat=combined_frame)
+                restore_stderr()
 
     def graceful_shutdown(self):
         logger.info(f'Graceful shutdown')
@@ -200,10 +217,12 @@ class AvatarEngine(AvatarSettingsManager):
         for t in threads:
             t.join()
 
-        if self.testing_mode:
+        if self.preview_mode:
             cv2.destroyAllWindows()
 
         self.face_landmarker.close()
+        logger.info(f'Graceful shutdown done!')
+
 
     def add_points_to_frame(self, detection_result, frame):
         for face_landmarks in detection_result.face_landmarks:
