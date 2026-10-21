@@ -325,7 +325,7 @@ class Runner:
 
 
         if launch_result == LaunchResult.save:
-            settings_after_launcher = launcher.get_updated_launch_settings()
+            settings_after_launcher = launcher.get_launch_settings()
 
             logger.debug(f'after: {settings_after_launcher.to_dict()}')
 

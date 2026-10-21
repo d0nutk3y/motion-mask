@@ -35,6 +35,7 @@ logger = loggers.LoggerFactory.get_logger(name=__name__)
 
 
 class LaunchResult(enum.StrEnum):
+    error = 'error'
     exit = 'exit'
     save = 'save'
 
@@ -112,7 +113,8 @@ class ListSelection:
 
         def _select_handler():
             self.selected_item = radio_list.current_value
-            if not self.future.done():
+
+            if self.future is not None and not self.future.done():
                 self.future.set_result(self.selected_item)
 
         def _cancel_handler():
@@ -141,10 +143,6 @@ class ListSelection:
             buttons=buttons,
         )
 
-    async def show(self) -> str | None:
-        self.future = asyncio.get_running_loop().create_future()
-        self.create_dialog()
-
 
 class Tui:
     max_width: int = 64
@@ -156,10 +154,10 @@ class Tui:
         self._init_bindings()
 
         self.style: Style | None = None
-        self._init_style()
 
         self.app: Application | None = None
         self.menu_items: list[ButtonWithText] | None = None
+        self.float_container: FloatContainer | None = None
         self._build_tui()
 
         self._reflect_settings_to_ui()
@@ -173,9 +171,6 @@ class Tui:
         bindings.add('up')(focus_previous)
 
         self.bindings = bindings
-
-    def _init_style(self):
-        self.style = None
 
     def create_main_menu_items(self) -> list[Button]:
 
@@ -196,14 +191,14 @@ class Tui:
         buttons_with_text = [
             ButtonWithText(name='Quit',
                            initial_text='',
-                           handler=lambda: self.quit(),
+                           handler=lambda: self.request_exit(),
                            button_width=button_width),
 
             *selection_buttons,
 
             ButtonWithText(name='Save',
                            initial_text='',
-                           handler=lambda: self.save(),
+                           handler=lambda: self.request_save_and_exit(),
                            button_width=button_width),
         ]
 
@@ -269,6 +264,9 @@ class Tui:
             try:
                 result = await list_selection.future
             finally:
+                if not list_selection.future.done():
+                    list_selection.future.cancel()
+
                 if float_ in self.float_container.floats:
                     self.float_container.floats.remove(float_)
 
@@ -293,11 +291,12 @@ class Tui:
             return self.app.run()
         except Exception as e:
             logger.error(f'Something goes wrong with tui: {e}')
+            return LaunchResult.error
 
-    def quit(self):
+    def request_exit(self):
         self.app.exit(result=LaunchResult.exit)
 
-    def save(self):
+    def request_save_and_exit(self):
         self.app.exit(result=LaunchResult.save)
 
     def _reflect_settings_to_ui(self):
@@ -307,7 +306,7 @@ class Tui:
             value = settings_dict.get(SettingName(mi.name))
 
             if value:
-                mi.set_text(new_text=value)
+                mi.set_text(new_text=str(value))
 
     def create_button_with_text(self, name: str, button_width: int):
         bwt = ButtonWithText(name=name,
@@ -326,5 +325,5 @@ class Tui:
 
         return bwt
 
-    def get_updated_launch_settings(self) -> LaunchSettings:
+    def get_launch_settings(self) -> LaunchSettings:
         return self._launch_settings

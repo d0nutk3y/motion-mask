@@ -75,6 +75,8 @@ class Option:
 
 
 class LaunchSettings:
+    _UI_MARKERS = '<>[]*'
+
     def __init__(self):
         self._data: dict[SettingName, Option] = dict()
 
@@ -87,7 +89,12 @@ class LaunchSettings:
     def get_available_choices(self, name: SettingName) -> list[tuple[str, str]]:
         option = self._data.get(name)
 
-        items = [(x.value, x.label) for x
+        def _clean_label(label: str) -> str:
+            for ch in self._UI_MARKERS:
+                label = label.replace(ch, "")
+            return label.strip()
+
+        items = [(x.value, _clean_label(x.label)) for x
                  in option.available_choices]
 
         return items
