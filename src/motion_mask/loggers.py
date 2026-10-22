@@ -66,8 +66,6 @@ class LoggingStreamSwitcher:
         self.stream = stream
         self.initial_config = initial_config
 
-
-
     def change_stream(self):
         config = self.initial_config.copy()
 

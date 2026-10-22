@@ -31,7 +31,7 @@ class FileStorage(Storage):
                 f.write(text)
 
         except Exception as e:
-            logger.error(f"Save error: {type(e)}: {e}")
+            logger.error(f"save error: {type(e)}: {e}")
 
     def load(self) -> str:
         try:
@@ -40,10 +40,10 @@ class FileStorage(Storage):
             return text
 
         except FileNotFoundError:
-            logger.error(f"File not found: {self.filepath}")
+            logger.error(f"file not found: {self.filepath}")
             raise StorageException()
         except Exception as e:
-            logger.error(f"Load error: {type(e)}: {e}")
+            logger.error(f"load error: {type(e)}: {e}")
             raise StorageException()
 
     def exists(self):

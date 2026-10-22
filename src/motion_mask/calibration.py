@@ -109,7 +109,7 @@ class AnalyticsStep(StepSelection):
         result: dict[str, float] = {}
 
         if not self.previous_mapping:
-            logger.info('No previous mapping to process')
+            logger.info('no previous mapping to process')
             return result
 
         for i, curr_shape in mapping.items():
@@ -219,7 +219,7 @@ class CalibrationStep(StepSelection):
 
         percent_diff = second.percent_diff(other=first)
         if percent_diff > self.acceptable_percent_diff:
-            msg = f'Asymmetry difference more than acceptable: {percent_diff:0.1%}'
+            msg = f'asymmetry difference more than acceptable: {percent_diff:0.1%}'
             logger.warning(msg)
 
 
@@ -357,7 +357,7 @@ class SaveSettingsStepSelection(StepSelection):
             for name, item in results.items():
                 mapping[name] = item
 
-        logger.info(f'Collected {len(mapping)} thresholds to save')
+        logger.info(f'collected {len(mapping)} thresholds to save')
 
         self.process_status = 'processed'
         self.result = mapping

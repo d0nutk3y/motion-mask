@@ -50,7 +50,7 @@ class CaptureWrap(threading.Thread):
             self._check_camera_resolution()
 
         except Exception as e:
-            logger.error(f'Problems with camera init: {e}')
+            logger.error(f'problems with camera init: {e}')
             self._error_event.set()
 
             if self.capture is not None:
@@ -61,7 +61,7 @@ class CaptureWrap(threading.Thread):
         try:
             self._run()
         except Exception as e:
-            logger.error(f'Problems with camera runtime: {e}')
+            logger.error(f'problems with camera runtime: {e}')
             self._error_event.set()
             return
 
@@ -79,7 +79,7 @@ class CaptureWrap(threading.Thread):
                 try:
                     self.capture.release()
                 except Exception as e:
-                    logger.warning(f'Error releasing camera: {e}')
+                    logger.warning(f'error releasing camera: {e}')
 
     def get_frame(self):
         return self.frame
@@ -92,4 +92,4 @@ class CaptureWrap(threading.Thread):
         actual_h = self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
         if actual_w != self.width or actual_h != self.height:
             logger.warning(
-                f'Camera resolution mismatch: requested {self.width}x{self.height}, got {actual_w}x{actual_h}')
+                f'camera resolution mismatch: requested {self.width}x{self.height}, got {actual_w}x{actual_h}')

@@ -290,7 +290,7 @@ class Tui:
         try:
             return self.app.run()
         except Exception as e:
-            logger.error(f'Something goes wrong with tui: {e}')
+            logger.error(f'something goes wrong with tui: {e}')
             return LaunchResult.error
 
     def request_exit(self):

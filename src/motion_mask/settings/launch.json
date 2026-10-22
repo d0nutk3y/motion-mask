@@ -1,5 +1,5 @@
 {
-  "mode": "live",
+  "mode": "preview",
   "camera": "200",
   "virtual camera": "v4l2loopback/video9",
   "avatar name": "kanisan_v2"

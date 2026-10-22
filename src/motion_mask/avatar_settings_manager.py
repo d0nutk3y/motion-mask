@@ -18,7 +18,7 @@ class AvatarSettingsManager:
             self.load_settings()
         except SettingsException:
             self.settings: Settings = Settings()
-            logger.info(f'Default settings loaded')
+            logger.info(f'default settings loaded')
 
     def update_thresholds_mapping(self, mapping):
         original_mapping = self.settings.thresholds_settings_mapping
@@ -35,16 +35,16 @@ class AvatarSettingsManager:
         try:
             text = self.settings_storage.load()
             self.settings = Settings.from_json(text=text)
-            logger.info('Settings loaded')
+            logger.info('settings loaded')
         except Exception:
-            logger.error(f'Error with loading settings')
+            logger.error(f'error with loading settings')
             raise SettingsException('Loading error')
 
     def save_settings(self):
         try:
             json_text = self.settings.to_json()
             self.settings_storage.save(text=json_text)
-            logger.info('Settings saved')
+            logger.info('settings saved')
         except Exception as e:
-            logger.error(f'Error with saving settings: {e}')
+            logger.error(f'error with saving settings: {e}')
             raise SettingsException('Saving error')

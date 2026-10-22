@@ -76,9 +76,9 @@ class CalibrationEngine(AvatarSettingsManager, Engine):
         try:
             self._launch()
         except KeyboardInterrupt:
-            logger.info('Shutting down')
+            logger.info('shutting down')
         except Exception as e:
-            logger.error(f'Something goes wrong: {e}')
+            logger.error(f'something goes wrong: {e}')
         finally:
             self.graceful_shutdown()
 
@@ -86,7 +86,7 @@ class CalibrationEngine(AvatarSettingsManager, Engine):
         self.stop_callback = stop_callback
 
     def _launch(self):
-        logger.info("Calibration mode")
+        logger.info('calibration mode')
 
         self.capture_wrap.start()
 
@@ -97,11 +97,12 @@ class CalibrationEngine(AvatarSettingsManager, Engine):
                 break
 
             if self.capture_wrap.has_errors():
-                logger.error('Camera error')
+                logger.error('camera error')
                 break
 
             key = cv2.waitKey(1) & 0xFF
             if key == ord('q'):
+                logger.debug('exiting by hotkey from cv window')
                 break
 
             raw_frame = self.capture_wrap.get_frame()
@@ -116,7 +117,7 @@ class CalibrationEngine(AvatarSettingsManager, Engine):
                 image=mp_image)
 
             if not detection_result.face_landmarks:
-                logger.debug('No face detected!')
+                logger.debug('no face detected!')
                 time.sleep(0.25)
                 continue
 
@@ -169,7 +170,7 @@ class CalibrationEngine(AvatarSettingsManager, Engine):
             restore_stderr()
 
     def graceful_shutdown(self):
-        logger.info(f'Graceful shutdown')
+        logger.info(f'graceful shutdown')
 
         self.capture_wrap.stop()
         self.capture_wrap.join()

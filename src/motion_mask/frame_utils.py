@@ -150,7 +150,7 @@ def _ensure_4channels(img: np.ndarray) -> np.ndarray:
     if img.shape[2] == 4:
         return img
 
-    logger.warning('Non optimal conversion to 4 channels! It can slowdown image processing')
+    logger.warning('non optimal conversion to 4 channels! It can slowdown image processing')
 
     if img.ndim == 2:
         # Grayscale -> BGRA

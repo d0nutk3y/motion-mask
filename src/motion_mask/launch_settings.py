@@ -60,7 +60,7 @@ class Option:
 
         self._current_choice = Choice(value=value, label=value)
 
-        logger.debug(f'Current choice for {self.name}: updated with value: {value}')
+        logger.debug(f'current choice for {self.name}: updated with value: {value}')
 
     @property
     def available_choices(self):

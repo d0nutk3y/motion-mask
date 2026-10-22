@@ -44,7 +44,7 @@ class CamerasInfoStorage:
                 backend=camera_info.backend,
             )
 
-            logger.info(f'Camera detected: {ci.get_info()}')
+            logger.info(f'camera detected: {ci.get_info()}')
             self._camera_infos[ci.index] = ci
 
     @property

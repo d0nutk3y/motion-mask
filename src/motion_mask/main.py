@@ -67,8 +67,8 @@ class App(threading.Thread):
         self.launch_settings = launch_settings
         self.paths: AppPaths = app_paths
 
-        self.cap_width = 640
-        self.cap_height = 360
+        self.cap_width = 1280
+        self.cap_height = 720
 
         self.engine: Engine | None = None
         self._stop_event = threading.Event()
@@ -96,27 +96,21 @@ class App(threading.Thread):
 
         try:
             if not cap.isOpened():
-                logger.debug(
-                    f'Camera failed to open: {camera_info.get_info()}'
-                )
+                logger.debug(f'camera failed to open: {camera_info.get_info()}')
                 return False
 
             for attempt in range(max_attempts):
                 ret, frame = cap.read()
                 if ret and frame is not None and frame.size > 0:
-                    logger.debug(
-                        f'Camera is working: {camera_info.get_info()}'
-                    )
+                    logger.debug(f'camera is working: {camera_info.get_info()}')
                     return True
 
-            logger.debug(
-                f'Camera opened but returned no frames: {camera_info.get_info()}'
-            )
+            logger.debug(f'camera opened but returned no frames: {camera_info.get_info()}')
             return False
 
         except Exception as e:
             logger.warning(
-                f'Camera raised exception during check: {camera_info.get_info()}\n'
+                f'camera raised exception during check: {camera_info.get_info()}\n'
                 f'Exception {e}'
             )
             return False
@@ -127,7 +121,7 @@ class App(threading.Thread):
     def test_cameras(self, cameras_infos: list[CameraInfo]) -> CameraInfo | None:
         camera_info = None
         for ci in cameras_infos:
-            logger.info(f'Trying camera: {ci.get_info()}')
+            logger.info(f'trying camera: {ci.get_info()}')
 
             if self.is_camera_working(camera_info=ci):
                 camera_info = ci
@@ -237,11 +231,11 @@ class App(threading.Thread):
             self.engine.set_stop_callback(stop_callback=self.stop_callback)
 
         except AvatarException as e:
-            logger.error(f'Avatar error: {e}')
+            logger.error(f'avatar error: {e}')
             sys.exit(1)
 
         except AppException as e:
-            logger.error(f'App error: {e}')
+            logger.error(f'app error: {e}')
             sys.exit(1)
 
         # Launch
@@ -249,103 +243,8 @@ class App(threading.Thread):
             self.engine.launch()
             return
         except AppException as e:
-            logger.error(f'Avatar error: {e}')
+            logger.error(f'avatar error: {e}')
             sys.exit(1)
-
-
-class Runner:
-    def __init__(self):
-        self.paths = AppPaths()
-
-        path_to_saved_launch_settings = create_path(
-            path_as_str=PathsToFiles.launch_settings)
-
-        self.launch_settings_storage: FileStorage = FileStorage(
-            filepath=path_to_saved_launch_settings)
-
-        self.lsf = LaunchSettingsFactory()
-
-    @staticmethod
-    def _is_settings_full(settings: dict[SettingName, str]) -> bool:
-        if not settings:
-            return False
-        for n, s in settings.items():
-            if s == '':
-                logger.info(f'No value for argument: {n}')
-                return False
-        return True
-
-    def fill_launch_settings(self, parsed_settings):
-        is_parsed_settings_full = self._is_settings_full(settings=parsed_settings)
-
-        if is_parsed_settings_full:
-            launch_settings = self.lsf.create_launch_settings()
-            launch_settings.sync_with_settings_source(
-                settings_source=DictSettingsSource(
-                    settings_dict=parsed_settings
-                )
-            )
-            return launch_settings
-
-        is_launch_settings_exist = self.launch_settings_storage.exists()
-        if is_launch_settings_exist:
-            json_text = self.launch_settings_storage.load()
-            from_json_settings = json.loads(json_text)
-
-            launch_settings = self.lsf.create_launch_settings()
-            launch_settings.sync_with_settings_source(
-                settings_source=DictSettingsSource(
-                    settings_dict=from_json_settings
-                )
-            )
-
-            return launch_settings
-
-        default_launch_settings = self.lsf.create_default_launch_settings()
-        return default_launch_settings
-
-    def run(self):
-        op = CliOptionsParser()
-        cli_mode, parsed_settings = op.parse_settings()
-
-        launch_settings = self.fill_launch_settings(
-            parsed_settings=parsed_settings)
-
-        if cli_mode is CliMode.cli_start:
-            self._run_app(launch_settings=launch_settings)
-        elif cli_mode is CliMode.cli_setup:
-            self._run_setup(launch_settings=launch_settings)
-
-    def _run_app(self, launch_settings: LaunchSettings):
-        logger.debug('starting app...')
-
-        app = App(launch_settings=launch_settings,
-                  app_paths=self.paths)
-
-        tui_app_wrap(thread=app, exit_request_event=app.stop_event)
-
-    def _run_setup(self, launch_settings: LaunchSettings):
-        logger.debug('starting setup...')
-
-        logger.debug(f'before: {launch_settings.to_dict()}')
-
-        launcher = Tui(launch_settings=launch_settings)
-        launch_result = launcher.launch()
-        logger.debug(f'tui exit status: {launch_result}')
-
-        if launch_result == LaunchResult.save:
-            settings_after_launcher = launcher.get_launch_settings()
-
-            logger.debug(f'after: {settings_after_launcher.to_dict()}')
-
-            json_text = json.dumps(
-                settings_after_launcher.to_dict(),
-                indent=2,
-            )
-
-            self.launch_settings_storage.save(text=json_text)
-
-        sys.exit(0)
 
 
 class ModeChoicesSource(ChoicesSource):
@@ -386,8 +285,8 @@ class AvatarPathChoicesSource(ChoicesSource):
     def __init__(self, path_to_avatar_dir):
         self.path_to_avatar_dir = path_to_avatar_dir
 
-        logger.debug(f'CWD: {pathlib.Path.cwd()}')
-        logger.debug(f'Absolute path: {self.path_to_avatar_dir.resolve()}')
+        logger.debug(f'cwd: {pathlib.Path.cwd()}')
+        logger.debug(f'absolute path: {self.path_to_avatar_dir.resolve()}')
 
     def get_choices(self) -> list[Choice]:
         avatars_paths_choices: list[Choice] = list()
@@ -395,7 +294,7 @@ class AvatarPathChoicesSource(ChoicesSource):
 
         for child in path.glob(pattern='*'):
             if child.is_dir():
-                logger.debug(f'Found avatar dir: {child.absolute()}')
+                logger.debug(f'found avatar dir: {child.absolute()}')
                 choice = Choice(
                     value=child.name,
                     label=child.name)
@@ -450,6 +349,99 @@ class LaunchSettingsFactory:
         self.sync_with_default_settings(launch_settings=ls)
 
         return ls
+
+
+class Runner:
+    def __init__(self):
+        self.paths = AppPaths()
+
+        path_to_saved_launch_settings = create_path(
+            path_as_str=PathsToFiles.launch_settings)
+
+        self.launch_settings_storage: FileStorage = FileStorage(
+            filepath=path_to_saved_launch_settings)
+
+        self.lsf = LaunchSettingsFactory()
+
+    @staticmethod
+    def _is_settings_full(settings: dict[SettingName, str]) -> bool:
+        if not settings:
+            return False
+        for n, s in settings.items():
+            if s == '':
+                logger.info(f'no value for argument: {n}')
+                return False
+        return True
+
+    def fill_launch_settings(self, parsed_settings):
+        is_parsed_settings_full = self._is_settings_full(settings=parsed_settings)
+
+        if is_parsed_settings_full:
+            launch_settings = self.lsf.create_launch_settings()
+            launch_settings.sync_with_settings_source(
+                settings_source=DictSettingsSource(
+                    settings_dict=parsed_settings
+                )
+            )
+            return launch_settings
+
+        is_launch_settings_exist = self.launch_settings_storage.exists()
+        if is_launch_settings_exist:
+            json_text = self.launch_settings_storage.load()
+            from_json_settings = json.loads(json_text)
+
+            launch_settings = self.lsf.create_launch_settings()
+            launch_settings.sync_with_settings_source(
+                settings_source=DictSettingsSource(
+                    settings_dict=from_json_settings
+                )
+            )
+
+            return launch_settings
+
+        default_launch_settings = self.lsf.create_default_launch_settings()
+        return default_launch_settings
+
+    def run(self):
+        op = CliOptionsParser()
+        cli_mode, parsed_settings = op.parse_settings()
+
+        launch_settings = self.fill_launch_settings(
+            parsed_settings=parsed_settings)
+
+        if cli_mode is CliMode.cli_start:
+            self._run_app(launch_settings=launch_settings)
+        elif cli_mode is CliMode.cli_setup:
+            self._run_setup(launch_settings=launch_settings)
+
+    def _run_app(self, launch_settings: LaunchSettings):
+        logger.debug('starting app')
+
+        app = App(launch_settings=launch_settings,
+                  app_paths=self.paths)
+
+        tui_app_wrap(thread=app, exit_request_event=app.stop_event)
+
+    def _run_setup(self, launch_settings: LaunchSettings):
+        logger.debug('starting setup')
+
+        logger.debug(f'before: {launch_settings.to_dict()}')
+
+        launcher = Tui(launch_settings=launch_settings)
+        launch_result = launcher.launch()
+        logger.debug(f'tui exit status: {launch_result}')
+
+        if launch_result == LaunchResult.save:
+            settings_after_launcher = launcher.get_launch_settings()
+
+            logger.debug(f'after: {settings_after_launcher.to_dict()}')
+
+            json_text = json.dumps(
+                settings_after_launcher.to_dict(),
+                indent=2,
+            )
+
+            self.launch_settings_storage.save(text=json_text)
 
 
 def run():

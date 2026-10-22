@@ -66,7 +66,7 @@ class DefaultVirtualCamera(threading.Thread, VirtualCameraInterface):
         try:
             self._run()
         except Exception as e:
-            logger.error(f'Problems with starting virtual camera: {e}')
+            logger.error(f'problems with starting virtual camera: {e}')
             self._error_event.set()
 
     def _run(self):

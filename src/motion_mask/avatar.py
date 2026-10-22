@@ -575,11 +575,11 @@ class AvatarCache:
 
         cache_len = len(self.cache)
 
-        logger.debug(f'New frame registered. Cache length: {cache_len}')
+        logger.debug(f'new frame registered. Cache length: {cache_len}')
 
         if cache_len > self.max_size:
             self.cache.popitem(last=False)
-            logger.debug(f'Frame popped from cache')
+            logger.debug(f'frame popped from cache')
 
 
 class Avatar:

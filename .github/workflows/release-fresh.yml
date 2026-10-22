@@ -32,8 +32,10 @@ jobs:
       - name: List downloaded files
         run: find artifacts -type f
 
-      - name: Delete existing rolling tag
-        run: git push --delete origin main-latest || true
+      - name: Delete existing rolling release and tag
+        run: gh release delete main-latest --cleanup-tag -y || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

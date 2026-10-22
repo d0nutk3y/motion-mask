@@ -69,7 +69,7 @@ class AvatarEngine(AvatarSettingsManager, Engine):
         self._init_mediapipe()
 
         self.apply_settings()
-        logger.info("Settings applied")
+        logger.info('settings applied')
 
     def _init_mediapipe(self):
         restore = suppress_native_stderr()
@@ -100,9 +100,9 @@ class AvatarEngine(AvatarSettingsManager, Engine):
         try:
             self._launch()
         except KeyboardInterrupt:
-            logger.info('Shutting down')
+            logger.info('shutting down')
         except Exception as e:
-            logger.error(f'Something goes wrong: {e}')
+            logger.error(f'something goes wrong: {e}')
         finally:
             self.graceful_shutdown()
 
@@ -119,16 +119,16 @@ class AvatarEngine(AvatarSettingsManager, Engine):
                 break
 
             if self.capture_wrap.has_errors():
-                logger.error('Camera error')
+                logger.error('camera error')
                 break
 
             if self.virtual_camera.has_errors():
-                logger.error('Virtual camera error')
+                logger.error('virtual camera error')
                 break
 
             if self.preview_mode:
                 if cv2.waitKey(1) & 0xFF == ord('q'):
-                    logger.info('Exiting by hotkey from cv interface')
+                    logger.debug('exiting by hotkey from cv window')
                     break
 
             raw_frame = self.capture_wrap.get_frame()
@@ -152,7 +152,7 @@ class AvatarEngine(AvatarSettingsManager, Engine):
                 image=mp_image)
 
             if not detection_result.face_landmarks:
-                logger.debug('No face detected!')
+                logger.debug('no face detected!')
                 self.virtual_camera.set_frame(frame=self.absent_frame)
                 time.sleep(0.5)
                 continue
@@ -204,7 +204,7 @@ class AvatarEngine(AvatarSettingsManager, Engine):
                 restore_stderr()
 
     def graceful_shutdown(self):
-        logger.info(f'Graceful shutdown')
+        logger.info(f'graceful shutdown')
 
         threads = [
             self.capture_wrap,
@@ -221,8 +221,6 @@ class AvatarEngine(AvatarSettingsManager, Engine):
             cv2.destroyAllWindows()
 
         self.face_landmarker.close()
-        logger.info(f'Graceful shutdown done!')
-
 
     def add_points_to_frame(self, detection_result, frame):
         for face_landmarks in detection_result.face_landmarks:
