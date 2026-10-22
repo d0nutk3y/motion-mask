@@ -16,7 +16,6 @@ class FaceParts(enum.StrEnum):
 
 # Brows
 
-
 class BrowIndexMapping(enum.IntEnum):
     left_brow_down = 1
     left_brow_outer_up = 4
@@ -64,7 +63,6 @@ class EyelidState(enum.StrEnum):
 
 # Gaze
 
-
 class GazeIndexMapping(enum.IntEnum):
     left_look_down = 11
     left_look_in = 13
@@ -100,7 +98,6 @@ class GazeState(enum.StrEnum):
 
 
 # Mouth
-
 
 class MouthIndexMapping(enum.IntEnum):
     smile_left = 44

@@ -32,8 +32,14 @@ jobs:
       - name: List downloaded files
         run: find artifacts -type f
 
-      - name: Delete existing rolling release and tag
-        run: gh release delete main-latest --cleanup-tag -y || true
+      - name: Delete existing release and tag
+        run: |
+          if gh release view main-latest --repo ${{ github.repository }} >/dev/null 2>&1; then
+            echo "Release exists, deleting..."
+            gh release delete main-latest --cleanup-tag -y --repo ${{ github.repository }}
+          else
+            echo "No existing release, skipping deletion."
+          fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

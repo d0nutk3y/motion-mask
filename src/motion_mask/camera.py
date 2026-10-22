@@ -3,7 +3,10 @@ import dataclasses
 from cv2_enumerate_cameras import enumerate_cameras
 
 from motion_mask import loggers
-from motion_mask.constants import VirtualCamera, VirtualCameraBackend, VirtualCameraDevice
+from motion_mask.constants import (
+    VirtualCamera,
+    VirtualCameraBackend,
+    VirtualCameraDevice)
 
 logger = loggers.LoggerFactory.get_logger(name=__name__)
 

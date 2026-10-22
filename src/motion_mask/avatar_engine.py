@@ -3,7 +3,9 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-from mediapipe import Image, ImageFormat
+from mediapipe import (
+    Image,
+    ImageFormat)
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 

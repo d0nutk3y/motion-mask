@@ -4,7 +4,9 @@ from motion_mask import loggers
 from motion_mask.avatar_settings import (
     Settings,
     SettingsException)
-from motion_mask.files_io import FileStorage, Storage
+from motion_mask.files_io import (
+    FileStorage,
+    Storage)
 
 logger = loggers.LoggerFactory.get_logger(name=__name__)
 

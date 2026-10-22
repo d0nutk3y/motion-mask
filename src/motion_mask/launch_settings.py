@@ -2,7 +2,6 @@ import dataclasses
 import enum
 
 from motion_mask import loggers
-from motion_mask.constants import AppMode
 
 logger = loggers.LoggerFactory.get_logger(name=__name__)
 

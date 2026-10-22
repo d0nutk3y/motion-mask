@@ -5,7 +5,6 @@ import time
 from mediapipe.tasks.python.vision import FaceLandmarkerResult
 
 from motion_mask import loggers
-from motion_mask.avatar_settings import ThresholdSettings
 from motion_mask.avatar_constants import (
     BrowIndexMapping,
     BrowThresholdsNames,
@@ -16,6 +15,7 @@ from motion_mask.avatar_constants import (
     MouthIndexMapping,
     MouthThresholdsNames,
     index_to_name_mapping)
+from motion_mask.avatar_settings import ThresholdSettings
 from motion_mask.shapes import ShapeForCalibration
 
 logger = loggers.LoggerFactory.get_logger(name=__name__)

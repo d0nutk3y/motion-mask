@@ -1,6 +1,6 @@
+import logging.config
 import logging.handlers
 from datetime import datetime
-import logging.config
 
 
 class ShortLevelFormatter(logging.Formatter):
