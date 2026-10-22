@@ -13,8 +13,8 @@ jobs:
     steps:
       - name: Delete existing release and tag
         run: |
-          gh release delete main-latest --cleanup-tag -y || echo "Release not found, nothing to delete"
-          if gh release view main-latest >/dev/null 2>&1; then
+          gh release delete main-latest --cleanup-tag -y --repo ${{ github.repository }} || echo "Release not found, nothing to delete"
+          if gh release view main-latest --repo ${{ github.repository }} >/dev/null 2>&1; then
             echo "ERROR: Release still exists after deletion attempt"
             exit 1
           fi
