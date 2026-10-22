@@ -1,0 +1,23 @@
+name: clear-release
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - name: Delete existing release and tag
+        run: |
+          gh release delete main-latest --cleanup-tag -y 2>/dev/null || true
+          git push --delete origin main-latest 2>/dev/null || true
+          if gh release view main-latest >/dev/null 2>&1; then
+            echo "ERROR: Release still exists after deletion attempt"
+            exit 1
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

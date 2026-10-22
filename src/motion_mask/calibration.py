@@ -122,7 +122,7 @@ class AnalyticsStep(StepSelection):
             current_name = index_to_name_mapping[i]
 
             if diff >= self.diff_threshold:
-                info = f'{current_name}: from {prev_max:0.2f} to {curr_max:0.2f} -> {diff:0.1%}'
+                info = f'step: {current_name}: from {prev_max:0.2f} to {curr_max:0.2f} -> {diff:0.1%}'
                 logger.info(info)
 
                 result[current_name] = round(diff, 3)
@@ -134,8 +134,6 @@ class AnalyticsStep(StepSelection):
         return result
 
     def end_process(self, collector: ShapesCollector):
-        logger.info(f'{self.__class__.__name__}: done')
-
         mapping = collector.get_result()
         result = self.process_mapping(mapping=mapping)
 
@@ -144,8 +142,6 @@ class AnalyticsStep(StepSelection):
         self.result = result
 
     def process(self):
-        logger.info(f'{self.__class__.__name__}: starting')
-
         self.collector.set_end_callback(
             callback=lambda: self.end_process(collector=self.collector))
 
