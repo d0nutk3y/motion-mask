@@ -154,7 +154,7 @@ class AvatarEngine(AvatarSettingsManager, Engine):
                 image=mp_image)
 
             if not detection_result.face_landmarks:
-                logger.debug('no face detected!')
+                logger.debug('no face detected')
 
                 avatar_frame = self.absent_frame
                 self.virtual_camera.set_frame(frame=avatar_frame)

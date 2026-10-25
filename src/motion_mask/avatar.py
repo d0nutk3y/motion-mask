@@ -542,7 +542,7 @@ class DefaultStatesTransformer(StatesTransformer):
 
 
 class AvatarCache:
-    def __init__(self, max_size: int = 128):
+    def __init__(self, max_size: int = 256):
         if max_size <= 8:
             raise ValueError(f'Minimal size of cache must be more than 8')
 

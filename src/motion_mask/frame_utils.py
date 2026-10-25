@@ -138,11 +138,52 @@ def combine_frames_old(left_frame, right_frame):
     return combined
 
 
-def resize_image(image: np.ndarray, width: int, height: int) -> np.ndarray:
+def resize_image(image: np.ndarray,
+                 width: int,
+                 height: int,
+                 alpha_blur_sigma: float = 0.5) -> np.ndarray:
+    # alpha_blur_sigma=0.5 — очень лёгкое сглаживание (почти незаметно)
+    # alpha_blur_sigma=0.8 — рекомендуемое значение (заметно сглаживает, но не «мылит»)
+    # alpha_blur_sigma=1.0 — максимальное сглаживание в рамках «лёгкого» blur
+
+    src_h, src_w = image.shape[:2]
+
+    # Определяем интерполяцию
+    is_downscale = width < src_w or height < src_h
+    interp = cv2.INTER_AREA if is_downscale else cv2.INTER_LANCZOS4
+
+    # Без альфа-канала — простой ресайз
+    if image.shape[2] == 3:
+        if src_w == width and src_h == height:
+            return image
+        return cv2.resize(image, (width, height), interpolation=interp)
+
+    # С альфа-каналом
+    rgb = image[:, :, :3]
+    alpha = image[:, :, 3]
+
+    if src_w != width or src_h != height:
+        rgb = cv2.resize(rgb, (width, height), interpolation=interp)
+        alpha = cv2.resize(alpha, (width, height), interpolation=interp)
+
+    # Blur только альфы (после ресайза, в целевом разрешении)
+    if alpha_blur_sigma > 0:
+        # Ядро 3×3 достаточно для sigma 0.5–1.0
+        alpha = cv2.GaussianBlur(
+            alpha, (3, 3), sigmaX=alpha_blur_sigma,
+            sigmaY=alpha_blur_sigma, borderType=cv2.BORDER_REPLICATE
+        )
+
+    return np.concatenate([rgb, alpha[:, :, np.newaxis]], axis=2)
+
+
+def resize_image_interp(image: np.ndarray,
+                        width: int,
+                        height: int) -> np.ndarray:
     if image.shape[1] == width and image.shape[0] == height:
         return image
 
-    return cv2.resize(image, (width, height), interpolation=cv2.INTER_NEAREST)
+    return cv2.resize(image, (width, height), interpolation=cv2.INTER_LANCZOS4)
 
 
 def _ensure_4channels(img: np.ndarray) -> np.ndarray:
