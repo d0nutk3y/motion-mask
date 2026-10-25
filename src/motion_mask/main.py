@@ -121,6 +121,9 @@ class App(threading.Thread):
     def test_cameras(self, cameras_infos: list[CameraInfo]) -> CameraInfo | None:
         camera_info = None
         for ci in cameras_infos:
+            if ci is None:
+                continue
+
             logger.info(f'trying camera: {ci.get_info()}')
 
             if self.is_camera_working(camera_info=ci):
