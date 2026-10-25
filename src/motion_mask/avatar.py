@@ -33,7 +33,7 @@ logger = loggers.LoggerFactory.get_logger(name=__name__)
 
 class FileName(enum.StrEnum):
     absent = 'absent'
-    back = 'back_light'
+    back = 'back'
     base = 'base'
 
     brow_left_down = 'brow_left_down'
