@@ -155,8 +155,14 @@ class AvatarEngine(AvatarSettingsManager, Engine):
 
             if not detection_result.face_landmarks:
                 logger.debug('no face detected!')
-                self.virtual_camera.set_frame(frame=self.absent_frame)
-                time.sleep(0.5)
+
+                avatar_frame = self.absent_frame
+                self.virtual_camera.set_frame(frame=avatar_frame)
+
+                if self.preview_mode:
+                    self.show_blank_preview_window()
+
+                time.sleep(0.25)
                 continue
 
             self.face_states.update(detection_result=detection_result)
@@ -174,36 +180,68 @@ class AvatarEngine(AvatarSettingsManager, Engine):
             self.virtual_camera.set_frame(frame=avatar_frame)
 
             if self.preview_mode:
-                current_states = self.face_states.get_all_states()
-                current_states = [f'{k}: {v}' for k, v in current_states.items()]
-
-                lines = ['q -- quit', ''] + current_states
-
-                info_frame = self.create_info_frame(lines=lines)
-                self.add_points_to_frame(detection_result=detection_result,
-                                         frame=info_frame)
-
-                first_frame = fu.pad_frame_to_resolution(
-                    frame=info_frame,
-                    target_w=self.frame_width,
-                    target_h=self.frame_height,
+                self.translate_to_preview_window(
+                    detection_result=detection_result,
+                    avatar_frame=avatar_frame,
                 )
 
-                frame_to_show = avatar_frame
-                second_frame = fu.pad_frame_to_resolution(
-                    frame=frame_to_show,
-                    target_w=self.frame_width,
-                    target_h=self.frame_height,
-                )
+    def translate_to_preview_window(self, detection_result, avatar_frame):
+        current_states = self.face_states.get_all_states()
+        current_states = [f'{k}: {v}' for k, v in current_states.items()]
 
-                combined_frame = fu.combine_frames(
-                    frame1=first_frame,
-                    frame2=second_frame,
-                    direction='horizontal'
-                )
-                restore_stderr = suppress_native_stderr()
-                cv2.imshow(winname=self.win_name, mat=combined_frame)
-                restore_stderr()
+        lines = ['q -- quit', ''] + current_states
+        info_frame = self.create_info_frame(lines=lines)
+        self.add_points_to_frame(detection_result=detection_result,
+                                 frame=info_frame)
+        first_frame = fu.pad_frame_to_resolution(
+            frame=info_frame,
+            target_w=self.frame_width,
+            target_h=self.frame_height,
+        )
+
+        frame_to_show = avatar_frame
+        second_frame = fu.pad_frame_to_resolution(
+            frame=frame_to_show,
+            target_w=self.frame_width,
+            target_h=self.frame_height,
+        )
+
+        combined_frame = fu.combine_frames(
+            frame1=first_frame,
+            frame2=second_frame,
+            direction='horizontal'
+        )
+
+        restore_stderr = suppress_native_stderr()
+        cv2.imshow(winname=self.win_name, mat=combined_frame)
+        restore_stderr()
+
+    def show_blank_preview_window(self):
+        lines = ['q -- quit', '', 'no face detected']
+
+        info_frame = self.create_info_frame(lines=lines)
+        first_frame = fu.pad_frame_to_resolution(
+            frame=info_frame,
+            target_w=self.frame_width,
+            target_h=self.frame_height,
+        )
+
+        frame_to_show = self.absent_frame
+        second_frame = fu.pad_frame_to_resolution(
+            frame=frame_to_show,
+            target_w=self.frame_width,
+            target_h=self.frame_height,
+        )
+
+        combined_frame = fu.combine_frames(
+            frame1=first_frame,
+            frame2=second_frame,
+            direction='horizontal'
+        )
+
+        restore_stderr = suppress_native_stderr()
+        cv2.imshow(winname=self.win_name, mat=combined_frame)
+        restore_stderr()
 
     def graceful_shutdown(self):
         logger.info(f'graceful shutdown')

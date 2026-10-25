@@ -33,6 +33,7 @@ logger = loggers.LoggerFactory.get_logger(name=__name__)
 
 class FileName(enum.StrEnum):
     absent = 'absent'
+    back = 'back_light'
     base = 'base'
 
     brow_left_down = 'brow_left_down'
@@ -643,11 +644,10 @@ class Avatar:
 
         # constructing resulting frame
         parts_to_images_mapping: dict[str, np.ndarray] = {
-            p: self.images[n] for p, n
-            in parts_to_filenames_mapping.items()
-        }
+            p: self.images[n] for p, n in parts_to_filenames_mapping.items()}
 
-        avatar_frame = np.zeros((self.height, self.width, 4), dtype=np.uint8)
+        # avatar_frame = np.zeros((self.height, self.width, 4), dtype=np.uint8)
+        avatar_frame = self.images[FileName.back]
 
         for part, image in parts_to_images_mapping.items():
             avatar_frame = fu.overlay(avatar_frame, image)
