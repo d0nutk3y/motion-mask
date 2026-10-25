@@ -5,13 +5,13 @@ import enum
 # All thresholds values must be unique
 
 class FaceParts(enum.StrEnum):
-    brow_left = 'brow_left'
-    brow_right = 'brow_right'
+    mouth = 'mouth'
     gaze_left = 'gaze_left'
     gaze_right = 'gaze_right'
     eyelid_left = 'eyelid_left'
     eyelid_right = 'eyelid_right'
-    mouth = 'mouth'
+    brow_left = 'brow_left'
+    brow_right = 'brow_right'
 
 
 # Brows

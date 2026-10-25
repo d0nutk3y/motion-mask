@@ -35,8 +35,10 @@ class FileName(enum.StrEnum):
     absent = 'absent'
     base = 'base'
 
+    brow_left_down = 'brow_left_down'
     brow_left_normal = 'brow_left_normal'
     brow_left_up = 'brow_left_up'
+    brow_right_down = 'brow_right_down'
     brow_right_normal = 'brow_right_normal'
     brow_right_up = 'brow_right_up'
 
@@ -44,6 +46,7 @@ class FileName(enum.StrEnum):
     eyelid_left_opened_full = 'eyelid_left_opened_full'
     eyelid_left_opened_normal = 'eyelid_left_opened_normal'
     eyelid_left_squint = 'eyelid_left_squint'
+
     eyelid_right_closed = 'eyelid_right_closed'
     eyelid_right_opened_full = 'eyelid_right_opened_full'
     eyelid_right_opened_normal = 'eyelid_right_opened_normal'
@@ -54,6 +57,7 @@ class FileName(enum.StrEnum):
     gaze_left_down_in = 'gaze_left_down_in'
     gaze_left_down_out = 'gaze_left_down_out'
     gaze_left_in = 'gaze_left_in'
+
     gaze_left_out = 'gaze_left_out'
     gaze_left_up = 'gaze_left_up'
     gaze_left_up_in = 'gaze_left_up_in'
@@ -63,6 +67,7 @@ class FileName(enum.StrEnum):
     gaze_right_down = 'gaze_right_down'
     gaze_right_down_in = 'gaze_right_down_in'
     gaze_right_down_out = 'gaze_right_down_out'
+
     gaze_right_in = 'gaze_right_in'
     gaze_right_out = 'gaze_right_out'
     gaze_right_up = 'gaze_right_up'
@@ -174,7 +179,7 @@ class LeftBrow(Brow):
     state_to_file_mapping = {
         BrowState.UP: FileName.brow_left_up,
         BrowState.NORMAL: FileName.brow_left_normal,
-        BrowState.DOWN: FileName.brow_left_normal,
+        BrowState.DOWN: FileName.brow_left_down,
     }
 
     def _sync_fields(self):
@@ -189,7 +194,7 @@ class RightBrow(Brow):
     state_to_file_mapping = {
         BrowState.UP: FileName.brow_right_up,
         BrowState.NORMAL: FileName.brow_right_normal,
-        BrowState.DOWN: FileName.brow_right_normal,
+        BrowState.DOWN: FileName.brow_right_down,
     }
 
     def _sync_fields(self):
@@ -449,10 +454,6 @@ class Layers(enum.StrEnum):
 
 
 class FaceStates:
-    STATIC_LAYERS_ORDER_PRIORITY = [
-        Layers.base,
-    ]
-
     DYNAMIC_LAYERS_ORDER_PRIORITY = [
         Layers.mouth,
         Layers.gaze_left,
