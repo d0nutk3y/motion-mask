@@ -225,10 +225,19 @@ class BrowUpStep(CalibrationStep):
     do_asymmetry_check = True
 
     index_to_threshold_name_mapping = {
-        BrowIndexMapping.left_brow_outer_up: BrowThresholdsNames.left_common,
-        BrowIndexMapping.right_brow_outer_up: BrowThresholdsNames.right_common,
+        BrowIndexMapping.left_brow_outer_up: BrowThresholdsNames.left_up,
+        BrowIndexMapping.right_brow_outer_up: BrowThresholdsNames.right_up,
     }
 
+class BrowDownStep(CalibrationStep):
+    instructions = 'BROWS DOWN'
+    ratio = ThresholdRatioValues.wide.value
+    do_asymmetry_check = True
+
+    index_to_threshold_name_mapping = {
+        BrowIndexMapping.left_brow_down: BrowThresholdsNames.left_down,
+        BrowIndexMapping.right_brow_down: BrowThresholdsNames.right_down,
+    }
 
 class BlinkLeftEyelidStep(CalibrationStep):
     instructions = 'BLINKING LEFT'
@@ -370,6 +379,7 @@ class Calibrator:
 
         self.calibration_steps: list[CalibrationStep] = [
             BrowUpStep(),
+            BrowDownStep(),
             BlinkLeftEyelidStep(),
             BlinkRightEyelidStep(),
             OpenedFullEyelidStep(),

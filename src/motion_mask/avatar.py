@@ -157,15 +157,16 @@ class Brow(Part):
         self.down: Shape | None = None
         self.outer_up: Shape | None = None
 
-        self.brow_threshold: Threshold | None = None
+        self.brow_threshold_up: Threshold | None = None
+        self.brow_threshold_down: Threshold | None = None
 
     def calculate_state(self):
         self._sync_fields()
 
-        if self.brow_threshold.do_exceeds(self.outer_up):
+        if self.brow_threshold_up.do_exceeds(self.outer_up):
             return BrowState.UP
 
-        if self.brow_threshold.do_exceeds(self.down):
+        if self.brow_threshold_down.do_exceeds(self.down):
             return BrowState.DOWN
 
         return BrowState.NORMAL
@@ -186,7 +187,8 @@ class LeftBrow(Brow):
     def _sync_fields(self):
         self.down = self.shapes[BrowIndexMapping.left_brow_down]
         self.outer_up = self.shapes[BrowIndexMapping.left_brow_outer_up]
-        self.brow_threshold = self.thresholds[BrowThresholdsNames.left_common]
+        self.brow_threshold_up = self.thresholds[BrowThresholdsNames.left_up]
+        self.brow_threshold_down = self.thresholds[BrowThresholdsNames.left_down]
 
 
 class RightBrow(Brow):
@@ -201,7 +203,8 @@ class RightBrow(Brow):
     def _sync_fields(self):
         self.down = self.shapes[BrowIndexMapping.right_brow_down]
         self.outer_up = self.shapes[BrowIndexMapping.right_brow_outer_up]
-        self.brow_threshold = self.thresholds[BrowThresholdsNames.right_common]
+        self.brow_threshold_up = self.thresholds[BrowThresholdsNames.right_up]
+        self.brow_threshold_down = self.thresholds[BrowThresholdsNames.right_down]
 
 
 class Eyelid(Part):

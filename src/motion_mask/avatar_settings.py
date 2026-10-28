@@ -59,10 +59,16 @@ class Settings:
     @classmethod
     def get_thresholds_defaults(cls) -> dict[str, ThresholdSettings]:
         brows: dict[str, ThresholdSettings] = {
-            BrowThresholdsNames.left_common: ThresholdSettings(
+            BrowThresholdsNames.left_up: ThresholdSettings(
                 high=0.20, low=0.20 * 0.1
             ),
-            BrowThresholdsNames.right_common: ThresholdSettings(
+            BrowThresholdsNames.right_up: ThresholdSettings(
+                high=0.20, low=0.20 * 0.1
+            ),
+            BrowThresholdsNames.left_down: ThresholdSettings(
+                high=0.20, low=0.20 * 0.1
+            ),
+            BrowThresholdsNames.right_down: ThresholdSettings(
                 high=0.20, low=0.20 * 0.1
             ),
         }

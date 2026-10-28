@@ -24,8 +24,10 @@ class BrowIndexMapping(enum.IntEnum):
 
 
 class BrowThresholdsNames(enum.StrEnum):
-    left_common = 'brow_left_common'
-    right_common = 'brow_right_common'
+    left_up = 'brow_left_up'
+    left_down = 'brow_left_down'
+    right_up = 'brow_right_up'
+    right_down = 'brow_right_down'
 
 
 class BrowState(enum.StrEnum):

@@ -3,13 +3,21 @@
     "frames_to_drop": 0
   },
   "threshold_settings": {
-    "brow_left_common": {
-      "high": 0.35966,
-      "low": 0.265012
+    "brow_left_up": {
+      "high": 0.268638,
+      "low": 0.197943
     },
-    "brow_right_common": {
-      "high": 0.369768,
-      "low": 0.27246
+    "brow_right_up": {
+      "high": 0.227521,
+      "low": 0.167647
+    },
+    "brow_left_down": {
+      "high": 0.769171,
+      "low": 0.566757
+    },
+    "brow_right_down": {
+      "high": 0.77342,
+      "low": 0.569888
     },
     "eyelid_left_blink": {
       "high": 0.533828,
