@@ -41,7 +41,7 @@ class NoneVirtualCamera(VirtualCameraInterface):
 
 
 class DefaultVirtualCamera(threading.Thread, VirtualCameraInterface):
-    def __init__(self, backend: str, device: str):
+    def __init__(self, backend: str, device: str, fps: int = 24):
         super().__init__()
 
         self._stop_event = threading.Event()
@@ -52,7 +52,8 @@ class DefaultVirtualCamera(threading.Thread, VirtualCameraInterface):
 
         self.width = 1024
         self.height = 576
-        self.fps = 30
+        self.fps = fps
+        self.timeout = 1 / self.fps
 
         self.fit_to_camera_resolution = True
 
@@ -78,8 +79,8 @@ class DefaultVirtualCamera(threading.Thread, VirtualCameraInterface):
                 fps=self.fps) as cam:
             while not self._stop_event.is_set():
                 cam.send(self._frame)
-                timeout = 1 / self.fps
-                self._stop_event.wait(timeout=timeout)
+                # self._stop_event.wait(timeout=self.timeout)
+                cam.sleep_until_next_frame()
 
     def set_frame(self, frame):
         converted_to_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)

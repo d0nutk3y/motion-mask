@@ -13,7 +13,7 @@ class CaptureWrap(threading.Thread):
                  camera_backend: int,
                  width: int = 1280,
                  height: int = 720,
-                 fps: int = 30):
+                 fps: int = 24):
 
         super().__init__()
         self.capture = None
