@@ -193,23 +193,23 @@ class AvatarEngine(AvatarSettingsManager, Engine):
         info_frame = self.create_info_frame(lines=lines)
         self.add_points_to_frame(detection_result=detection_result,
                                  frame=info_frame)
-        first_frame = fu.pad_frame_to_resolution(
+        done_info_frame = fu.pad_frame_to_resolution(
             frame=info_frame,
             target_w=self.frame_width,
             target_h=self.frame_height,
         )
 
         frame_to_show = avatar_frame
-        second_frame = fu.pad_frame_to_resolution(
+        done_avatar_frame = fu.pad_frame_to_resolution(
             frame=frame_to_show,
             target_w=self.frame_width,
             target_h=self.frame_height,
         )
 
         combined_frame = fu.combine_frames(
-            frame1=first_frame,
-            frame2=second_frame,
-            direction='horizontal'
+            frame1=done_avatar_frame,
+            frame2=done_info_frame,
+            # direction='horizontal'
         )
 
         restore_stderr = suppress_native_stderr()
@@ -219,24 +219,24 @@ class AvatarEngine(AvatarSettingsManager, Engine):
     def show_blank_preview_window(self):
         lines = ['q -- quit', '', 'no face detected']
 
-        info_frame = self.create_info_frame(lines=lines)
-        first_frame = fu.pad_frame_to_resolution(
-            frame=info_frame,
+        done_info_frame = self.create_info_frame(lines=lines)
+        done_info_frame = fu.pad_frame_to_resolution(
+            frame=done_info_frame,
             target_w=self.frame_width,
             target_h=self.frame_height,
         )
 
         frame_to_show = self.absent_frame
-        second_frame = fu.pad_frame_to_resolution(
+        done_avatar_frame = fu.pad_frame_to_resolution(
             frame=frame_to_show,
             target_w=self.frame_width,
             target_h=self.frame_height,
         )
 
         combined_frame = fu.combine_frames(
-            frame1=first_frame,
-            frame2=second_frame,
-            direction='horizontal'
+            frame1=done_avatar_frame,
+            frame2=done_info_frame,
+            # direction='horizontal'
         )
 
         restore_stderr = suppress_native_stderr()

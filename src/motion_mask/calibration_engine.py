@@ -162,7 +162,7 @@ class CalibrationEngine(AvatarSettingsManager, Engine):
             combined_frame = fu.combine_frames(
                 frame1=first_frame,
                 frame2=second_frame,
-                direction='horizontal'
+                # direction='horizontal'
             )
 
             restore_stderr = suppress_native_stderr()
